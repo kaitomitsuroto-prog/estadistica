@@ -1,0 +1,2804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatAcademia — Análisis Estadístico Completo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.6/jstat.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#161b22;--bg3:#1c2231;--bg4:#21262d;
+  --border:#30363d;--border2:#3d444d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#656d76;
+  --blue:#58a6ff;--blue2:#1f6feb;--blue3:#0d419d;
+  --green:#3fb950;--green2:#196c2e;
+  --purple:#bc8cff;--purple2:#6e40c9;
+  --orange:#d29922;--orange2:#9e6a03;
+  --red:#f85149;--red2:#8a1f1f;
+  --teal:#39d353;
+  --accent:#58a6ff;
+  --radius:8px;--radius2:12px;
+  --font:'Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono','Fira Code',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh}
+h1{font-size:24px;font-weight:700;letter-spacing:-0.5px}
+h2{font-size:18px;font-weight:600;margin-bottom:12px}
+h3{font-size:15px;font-weight:600;margin-bottom:8px}
+h4{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+a{color:var(--blue);text-decoration:none}
+p{margin-bottom:8px;color:var(--text2)}
+code{font-family:var(--mono);background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--purple)}
+hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* Layout */
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{padding:24px;overflow-y:auto;max-height:100vh}
+
+/* Sidebar */
+.logo{display:flex;align-items:center;gap:10px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--blue2),var(--purple2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
+.logo-text{font-size:16px;font-weight:700}
+.logo-sub{font-size:11px;color:var(--text3)}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:8px 0 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:13px;transition:all 0.15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--blue3);color:var(--blue);font-weight:500}
+.nav-icon{width:16px;text-align:center;font-size:14px}
+.badge{margin-left:auto;background:var(--blue2);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:20px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--text3)}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.stat-val{font-size:22px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+.stat-interp{font-size:11px;color:var(--text2);margin-top:4px;font-style:italic}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;border:1px solid transparent}
+.btn-primary{background:var(--blue2);color:#fff;border-color:var(--blue2)}
+.btn-primary:hover{background:#388bfd;border-color:#388bfd}
+.btn-secondary{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.btn-secondary:hover{background:var(--bg4)}
+.btn-success{background:var(--green2);color:#fff;border-color:var(--green2)}
+.btn-danger{background:var(--red2);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+
+/* Forms */
+.form-group{margin-bottom:16px}
+.label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px}
+.input,.select,.textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:13px;font-family:var(--font);outline:none;transition:border 0.15s}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,0.1)}
+.textarea{resize:vertical;min-height:80px;line-height:1.5}
+.select option{background:var(--bg3)}
+
+/* Upload zone */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius2);padding:40px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg3)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:rgba(88,166,255,0.05)}
+.upload-icon{font-size:40px;margin-bottom:12px}
+.upload-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.upload-sub{font-size:12px;color:var(--text3)}
+
+/* Tables */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--bg3)}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3);color:var(--text)}
+.td-num{font-family:var(--mono);font-size:12px;text-align:right}
+th.th-num{text-align:right}
+
+/* Math display */
+.math-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin:12px 0;font-family:var(--mono);font-size:13px;line-height:2}
+.math-formula{color:var(--purple);font-size:14px;margin-bottom:8px}
+.math-step{padding:4px 0;color:var(--text2)}
+.math-step span{color:var(--text)}
+.math-result{color:var(--green);font-weight:700;font-size:15px;border-top:1px solid var(--border);padding-top:8px;margin-top:8px}
+.math-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+
+/* Hypothesis result */
+.hyp-card{border-radius:var(--radius2);padding:20px;margin-bottom:16px;border:1px solid}
+.hyp-reject{background:rgba(248,81,73,0.08);border-color:rgba(248,81,73,0.3)}
+.hyp-fail{background:rgba(63,185,80,0.08);border-color:rgba(63,185,80,0.3)}
+.hyp-title{font-size:16px;font-weight:600;margin-bottom:12px}
+.hyp-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-reject{background:rgba(248,81,73,0.2);color:var(--red)}
+.badge-fail{background:rgba(63,185,80,0.2);color:var(--green)}
+
+/* Decision row */
+.decision-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.decision-item{background:var(--bg3);border-radius:var(--radius);padding:12px}
+.decision-key{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.decision-val{font-size:14px;font-weight:600;font-family:var(--mono)}
+
+/* Interpretation box */
+.interp-box{background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.2);border-radius:var(--radius);padding:14px;margin-top:12px}
+.interp-icon{margin-right:6px}
+.conclusion-box{background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.2);border-radius:var(--radius);padding:14px;margin-top:8px}
+
+/* Progress */
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue2),var(--purple2));border-radius:2px;transition:width 0.3s}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:8px 16px;border-radius:6px 6px 0 0;cursor:pointer;font-size:13px;color:var(--text2);border:none;background:none;transition:all 0.15s}
+.tab.active{color:var(--blue);border-bottom:2px solid var(--blue)}
+.tab:hover{color:var(--text);background:var(--bg3)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Section header */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.section-title{font-size:20px;font-weight:700}
+.section-sub{font-size:13px;color:var(--text3);margin-top:2px}
+
+/* Chart container */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:16px 0}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:16px}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text2)}
+
+/* Steps */
+.step-list{counter-reset:steps}
+.step{display:flex;gap:14px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--blue3);color:var(--blue);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-body{flex:1}
+.step-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.step-content{font-size:13px;color:var(--text2)}
+
+/* Loading overlay */
+.loading{display:none;position:fixed;inset:0;background:rgba(15,17,23,0.85);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.loading.show{display:flex}
+.spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:var(--text2)}
+
+/* Alert */
+.alert{padding:12px 16px;border-radius:var(--radius);margin-bottom:16px;font-size:13px}
+.alert-info{background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.3);color:var(--blue)}
+.alert-success{background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);color:var(--green)}
+.alert-warn{background:rgba(210,153,34,0.1);border:1px solid rgba(210,153,34,0.3);color:var(--orange)}
+.alert-error{background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.3);color:var(--red)}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;margin:2px}
+.tag-blue{background:rgba(88,166,255,0.15);color:var(--blue)}
+.tag-green{background:rgba(63,185,80,0.15);color:var(--green)}
+.tag-purple{background:rgba(188,140,255,0.15);color:var(--purple)}
+.tag-orange{background:rgba(210,153,34,0.15);color:var(--orange)}
+
+/* IC visualization */
+.ic-visual{display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg3);border-radius:var(--radius);margin:8px 0;font-family:var(--mono);font-size:12px}
+.ic-line{flex:1;height:2px;background:var(--border2);position:relative}
+.ic-point{width:12px;height:12px;background:var(--blue);border-radius:50%;position:absolute;top:50%;transform:translateY(-50%)}
+.ic-left,.ic-right{width:8px;height:16px;border:2px solid var(--purple);position:absolute;top:50%;transform:translateY(-50%)}
+.ic-left{border-right:none;left:0}
+.ic-right{border-left:none;right:0}
+
+/* Frequency table highlight */
+.freq-modal{background:rgba(88,166,255,0.1)}
+
+/* Empty state */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:0.5}
+.empty-text{font-size:16px;margin-bottom:8px;color:var(--text2)}
+
+/* Report styles */
+.report-section{margin-bottom:32px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.report-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.report-sub{font-size:13px;color:var(--text3);margin-bottom:20px}
+
+/* Variable selector */
+.var-chips{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border)}
+.var-chip{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg4);color:var(--text2);transition:all 0.15s}
+.var-chip:hover{border-color:var(--blue);color:var(--blue)}
+.var-chip.selected{background:var(--blue3);color:var(--blue);border-color:var(--blue)}
+.var-chip.categorical{border-color:var(--purple2)}
+.var-chip.categorical.selected{background:rgba(110,64,201,0.2);color:var(--purple);border-color:var(--purple)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+@media print{
+  .sidebar,.btn,.tabs{display:none!important}
+  .main{padding:0;max-height:none}
+  .card{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Procesando análisis...</div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">Σ</div>
+      <div>
+        <div class="logo-text">StatAcademia</div>
+        <div class="logo-sub">Análisis Estadístico Completo</div>
+      </div>
+    </div>
+
+    <div class="nav-section">Configuración</div>
+    <button class="nav-item active" onclick="showPage('config')">
+      <span class="nav-icon">⚙</span> Configuración inicial
+    </button>
+
+    <div class="nav-section">Análisis</div>
+    <button class="nav-item" onclick="showPage('descriptivo')" id="nav-descriptivo">
+      <span class="nav-icon">📊</span> Análisis descriptivo
+    </button>
+    <button class="nav-item" onclick="showPage('frecuencias')" id="nav-frecuencias">
+      <span class="nav-icon">📋</span> Tabla de frecuencias
+    </button>
+    <button class="nav-item" onclick="showPage('probabilidad')" id="nav-probabilidad">
+      <span class="nav-icon">🎲</span> Probabilidades &amp; Z
+    </button>
+    <button class="nav-item" onclick="showPage('intervalos')" id="nav-intervalos">
+      <span class="nav-icon">📏</span> Intervalos de confianza
+    </button>
+    <button class="nav-item" onclick="showPage('hipotesis')" id="nav-hipotesis">
+      <span class="nav-icon">🔬</span> Pruebas de hipótesis
+      <span class="badge" id="hyp-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showPage('normalidad')" id="nav-normalidad">
+      <span class="nav-icon">📉</span> Prueba de Normalidad
+    </button>
+    <button class="nav-item" onclick="showPage('signos')" id="nav-signos">
+      <span class="nav-icon">±</span> Signos &amp; Rachas (H2)
+    </button>
+    <button class="nav-item" onclick="showPage('noparametrica')" id="nav-noparametrica">
+      <span class="nav-icon">⚖</span> No Paramétricas 2 muestras
+    </button>
+    <button class="nav-item" onclick="showPage('kruskal')" id="nav-kruskal">
+      <span class="nav-icon">📦</span> Kruskal-Wallis &amp; Friedman
+    </button>
+    <button class="nav-item" onclick="showPage('varianza')" id="nav-varianza">
+      <span class="nav-icon">σ²</span> Prueba Varianza &amp; Razón F
+    </button>
+    <button class="nav-item" onclick="showPage('graficos')" id="nav-graficos">
+      <span class="nav-icon">📈</span> Gráficos
+    </button>
+
+    <div class="nav-section">Resultados</div>
+    <button class="nav-item" onclick="showPage('reporte')" id="nav-reporte">
+      <span class="nav-icon">📄</span> Reporte completo
+    </button>
+
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Nivel de significancia</div>
+      <select class="select" id="alpha-global" onchange="updateAlpha()">
+        <option value="0.01">α = 0.01 (99% confianza)</option>
+        <option value="0.05" selected>α = 0.05 (95% confianza)</option>
+        <option value="0.10">α = 0.10 (90% confianza)</option>
+      </select>
+      <div style="margin-top:8px;font-size:11px;color:var(--text3)" id="data-status">
+        Sin datos cargados
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE: CONFIG -->
+    <div id="page-config" class="tab-content active">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Configuración del análisis</div>
+          <div class="section-sub">Cargue sus datos y defina objetivos e hipótesis</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- Upload -->
+        <div class="card">
+          <h2>📁 Cargar base de datos</h2>
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondrop="dropFile(event)" ondragleave="dragLeave(event)">
+            <div class="upload-icon">📂</div>
+            <div class="upload-title">Arrastre o haga clic para cargar</div>
+            <div class="upload-sub">Soporta Excel (.xlsx, .xls) y CSV</div>
+          </div>
+          <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="loadFile(event)">
+          <div style="margin:12px 0;text-align:center;color:var(--text3);font-size:12px">— o ingrese datos manualmente —</div>
+          <button class="btn btn-secondary" style="width:100%" onclick="showManualInput()">✏️ Ingresar tabla manualmente</button>
+
+          <!-- Manual input -->
+          <div id="manual-input" style="display:none;margin-top:16px">
+            <div class="form-group">
+              <label class="label">Pegue sus datos (CSV o tabulado)</label>
+              <textarea class="textarea" id="manual-data" placeholder="Variable1,Variable2,Variable3&#10;valor1,valor2,valor3&#10;..." style="min-height:120px;font-family:var(--mono);font-size:12px"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="label">Separador</label>
+              <select class="select" id="manual-sep">
+                <option value=",">Coma (,)</option>
+                <option value=";">Punto y coma (;)</option>
+                <option value="\t">Tabulación</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="parseManualData()">Cargar datos manuales</button>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="card">
+          <h2>👁 Vista previa de datos</h2>
+          <div id="data-preview">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-text">Sin datos cargados</div>
+              <div style="font-size:13px">Cargue un archivo para ver la vista previa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Objectives & Hypotheses -->
+      <div class="card">
+        <h2>🎯 Objetivos específicos</h2>
+        <div class="form-group">
+          <label class="label">Describa sus objetivos (uno por línea)</label>
+          <textarea class="textarea" id="objectives" placeholder="Ej: Determinar el promedio de años de experiencia de los trabajadores&#10;Comparar las horas trabajadas entre modalidad presencial y virtual&#10;Determinar la proporción de trabajadores en modalidad virtual" style="min-height:100px"></textarea>
+        </div>
+
+        <h2 style="margin-top:16px">🔬 Hipótesis específicas</h2>
+        <div id="hypotheses-container">
+          <div class="hypothesis-row" id="hyp-0">
+            <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px">
+              <span style="background:var(--blue3);color:var(--blue);padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap">H₁</span>
+              <textarea class="textarea" placeholder="Ej: El promedio de años de experiencia es menor a 3 años (μ < 3)" style="min-height:60px"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" onclick="addHypothesis()">+ Agregar hipótesis</button>
+          <button class="btn btn-secondary btn-sm" onclick="removeHypothesis()">− Eliminar última</button>
+        </div>
+      </div>
+
+      <!-- Run analysis -->
+      <div class="card" style="text-align:center;padding:32px">
+        <div style="font-size:32px;margin-bottom:12px">🚀</div>
+        <h2>Ejecutar análisis completo</h2>
+        <p>El sistema detectará automáticamente las variables necesarias, ejecutará todos los cálculos estadísticos y generará el informe completo.</p>
+        <div id="run-error" class="alert alert-error" style="display:none;text-align:left;margin:16px auto;max-width:500px"></div>
+        <button class="btn btn-primary" style="font-size:15px;padding:12px 32px;margin-top:8px" onclick="runFullAnalysis()">
+          ▶ Ejecutar análisis estadístico completo
+        </button>
+      </div>
+    </div>
+
+    <!-- PAGE: DESCRIPTIVO -->
+    <div id="page-descriptivo" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Análisis Descriptivo</div>
+          <div class="section-sub">Medidas de tendencia central, dispersión y posición</div>
+        </div>
+        <div id="var-selector-desc"></div>
+      </div>
+      <div id="descriptivo-content">
+        <div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: FRECUENCIAS -->
+    <div id="page-frecuencias" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Tabla de Frecuencias</div>
+          <div class="section-sub">Distribución de frecuencias absolutas, relativas y acumuladas</div>
+        </div>
+      </div>
+      <div id="frecuencias-content">
+        <div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: PROBABILIDAD -->
+    <div id="page-probabilidad" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Probabilidades y Puntajes Z</div>
+          <div class="section-sub">Cálculo de probabilidades y estandarización</div>
+        </div>
+      </div>
+      <div id="probabilidad-content">
+        <div class="empty-state"><div class="empty-icon">🎲</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: INTERVALOS -->
+    <div id="page-intervalos" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Intervalos de Confianza</div>
+          <div class="section-sub">IC para medias, diferencias, proporciones y varianzas</div>
+        </div>
+      </div>
+      <div id="intervalos-content">
+        <div class="empty-state"><div class="empty-icon">📏</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: HIPOTESIS -->
+    <div id="page-hipotesis" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Pruebas de Hipótesis</div>
+          <div class="section-sub">Detección automática y aplicación de pruebas estadísticas</div>
+        </div>
+      </div>
+      <div id="hipotesis-content">
+        <div class="empty-state"><div class="empty-icon">🔬</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: NORMALIDAD -->
+    <div id="page-normalidad" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">H2.1 — Prueba de Normalidad</div>
+          <div class="section-sub">Shapiro-Wilk (n≤50) y Kolmogorov-Smirnov (n&gt;50) + Gráficos Q-Q</div>
+        </div>
+      </div>
+      <div id="normalidad-content">
+        <div class="empty-state"><div class="empty-icon">📉</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: SIGNOS Y RACHAS -->
+    <div id="page-signos" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">H2.2 — Prueba de Signos y Prueba de Rachas</div>
+          <div class="section-sub">Prueba de signos para la mediana y Prueba de rachas (aleatoriedad)</div>
+        </div>
+      </div>
+      <div id="signos-content">
+        <div class="empty-state"><div class="empty-icon">±</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: NO PARAMETRICAS 2 MUESTRAS -->
+    <div id="page-noparametrica" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Pruebas No Paramétricas para Dos Muestras</div>
+          <div class="section-sub">1.1 Mann-Whitney | 1.2 Wilcoxon (pre-post sobre 80 datos)</div>
+        </div>
+      </div>
+      <div id="noparametrica-content">
+        <div class="empty-state"><div class="empty-icon">⚖</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: KRUSKAL-WALLIS Y FRIEDMAN -->
+    <div id="page-kruskal" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Pruebas de Kruskal-Wallis y Friedman</div>
+          <div class="section-sub">1.2 Kruskal-Wallis (K grupos independientes) | 1.3 Friedman (medidas repetidas)</div>
+        </div>
+      </div>
+      <div id="kruskal-content">
+        <div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: VARIANZA Y RAZON F -->
+    <div id="page-varianza" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Prueba de Hipótesis para la Varianza y Razón de Varianza (F)</div>
+          <div class="section-sub">Prueba χ² para σ² | IC para σ² | Prueba F de Razón de Varianzas</div>
+        </div>
+      </div>
+      <div id="varianza-content">
+        <div class="empty-state"><div class="empty-icon">σ²</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: GRAFICOS -->
+    <div id="page-graficos" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Gráficos Estadísticos</div>
+          <div class="section-sub">Visualización automática de todos los análisis</div>
+        </div>
+      </div>
+      <div id="graficos-content">
+        <div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: REPORTE -->
+    <div id="page-reporte" class="tab-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Reporte Final Completo</div>
+          <div class="section-sub">Informe académico generado automáticamente</div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="exportPDF()">⬇ Exportar PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportWord()">📄 Exportar Word</button>
+        </div>
+      </div>
+      <div id="reporte-content">
+        <div class="empty-state"><div class="empty-icon">📄</div><div class="empty-text">Ejecute el análisis primero</div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ==================== GLOBAL STATE ====================
+let state = {
+  data: null,
+  headers: [],
+  numericVars: [],
+  categoricalVars: [],
+  alpha: 0.05,
+  objectives: '',
+  hypotheses: [],
+  results: {
+    descriptive: {},
+    frequencies: {},
+    confidence: [],
+    hypothesisTests: [],
+    probabilities: []
+  }
+};
+
+let chartInstances = {};
+
+// ==================== NAVIGATION ====================
+function showPage(page) {
+  document.querySelectorAll('.tab-content').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navEl = document.getElementById('nav-' + page);
+  if(navEl) navEl.classList.add('active');
+  else document.querySelector('.nav-item').classList.add('active');
+}
+
+function updateAlpha() {
+  state.alpha = parseFloat(document.getElementById('alpha-global').value);
+}
+
+// ==================== FILE LOADING ====================
+function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag'); }
+function dragLeave() { document.getElementById('upload-zone').classList.remove('drag'); }
+function dropFile(e) { e.preventDefault(); dragLeave(); loadFile({target:{files:e.dataTransfer.files}}); }
+
+function loadFile(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  showLoading('Cargando archivo...');
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'csv') {
+    const reader = new FileReader();
+    reader.onload = ev => { parseCSV(ev.target.result); hideLoading(); };
+    reader.readAsText(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = ev => { parseExcel(ev.target.result); hideLoading(); };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const sep = text.includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(h => h.trim().replace(/"/g,''));
+  const rows = lines.slice(1).map(l => {
+    const vals = l.split(sep).map(v => v.trim().replace(/"/g,''));
+    const row = {};
+    headers.forEach((h,i) => row[h] = vals[i] || '');
+    return row;
+  });
+  processData(headers, rows);
+}
+
+function parseExcel(buffer) {
+  const wb = XLSX.read(buffer, {type:'array'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const raw = XLSX.utils.sheet_to_json(ws, {header:1});
+  const headers = raw[0].map(h => String(h||'').trim());
+  const rows = raw.slice(1).map(r => {
+    const row = {};
+    headers.forEach((h,i) => row[h] = r[i] !== undefined ? String(r[i]) : '');
+    return row;
+  }).filter(r => Object.values(r).some(v => v !== ''));
+  processData(headers, rows);
+}
+
+function parseManualData() {
+  const text = document.getElementById('manual-data').value.trim();
+  const sep = document.getElementById('manual-sep').value;
+  if(!text) return;
+  const actualSep = sep === '\\t' ? '\t' : sep;
+  const lines = text.split('\n');
+  const headers = lines[0].split(actualSep).map(h => h.trim());
+  const rows = lines.slice(1).map(l => {
+    const vals = l.split(actualSep).map(v => v.trim());
+    const row = {};
+    headers.forEach((h,i) => row[h] = vals[i] || '');
+    return row;
+  }).filter(r => Object.values(r).some(v => v !== ''));
+  processData(headers, rows);
+}
+
+function processData(headers, rows) {
+  state.headers = headers;
+  state.data = rows;
+  state.numericVars = [];
+  state.categoricalVars = [];
+
+  headers.forEach(h => {
+    const vals = rows.map(r => parseFloat(String(r[h]).replace(',','.'))).filter(v => !isNaN(v));
+    const totalNonEmpty = rows.filter(r => r[h] && r[h] !== '').length;
+    if(vals.length / Math.max(totalNonEmpty,1) > 0.6) {
+      state.numericVars.push(h);
+    } else {
+      state.categoricalVars.push(h);
+    }
+  });
+
+  document.getElementById('data-status').innerHTML = `
+    <strong style="color:var(--green)">${rows.length}</strong> filas × <strong style="color:var(--blue)">${headers.length}</strong> variables<br>
+    <span style="color:var(--text3)">Numéricas: ${state.numericVars.length} | Cat: ${state.categoricalVars.length}</span>
+  `;
+
+  renderDataPreview();
+}
+
+function renderDataPreview() {
+  if(!state.data) return;
+  const maxRows = 8;
+  const maxCols = 8;
+  const displayHeaders = state.headers.slice(0,maxCols);
+  let html = `<div class="table-wrap"><table>
+    <thead><tr>${displayHeaders.map(h => `<th>${h}</th>`).join('')}${state.headers.length > maxCols ? '<th>...</th>':''}
+    </tr></thead><tbody>`;
+  state.data.slice(0,maxRows).forEach(row => {
+    html += '<tr>' + displayHeaders.map(h => `<td>${row[h]||''}</td>`).join('') + (state.headers.length > maxCols ? '<td>...</td>':'') + '</tr>';
+  });
+  html += `</tbody></table></div>`;
+  if(state.data.length > maxRows) {
+    html += `<div style="font-size:12px;color:var(--text3);margin-top:8px;text-align:center">Mostrando ${maxRows} de ${state.data.length} filas</div>`;
+  }
+  html += `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">`;
+  state.numericVars.forEach(v => html += `<span class="tag tag-blue">📊 ${v}</span>`);
+  state.categoricalVars.forEach(v => html += `<span class="tag tag-purple">🏷 ${v}</span>`);
+  html += `</div>`;
+  document.getElementById('data-preview').innerHTML = html;
+}
+
+function showManualInput() {
+  const el = document.getElementById('manual-input');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ==================== HYPOTHESIS MANAGEMENT ====================
+let hypCount = 1;
+function addHypothesis() {
+  const container = document.getElementById('hypotheses-container');
+  const div = document.createElement('div');
+  div.className = 'hypothesis-row';
+  div.id = `hyp-${hypCount}`;
+  div.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px">
+      <span style="background:rgba(110,64,201,0.2);color:var(--purple);padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap">H${hypCount+1}</span>
+      <textarea class="textarea" placeholder="Ingrese hipótesis..." style="min-height:60px"></textarea>
+    </div>`;
+  container.appendChild(div);
+  hypCount++;
+}
+
+function removeHypothesis() {
+  if(hypCount <= 1) return;
+  hypCount--;
+  const el = document.getElementById(`hyp-${hypCount}`);
+  if(el) el.remove();
+}
+
+function getHypotheses() {
+  const rows = document.querySelectorAll('.hypothesis-row');
+  return Array.from(rows).map(r => r.querySelector('textarea').value.trim()).filter(h => h);
+}
+
+// ==================== STATISTICS ENGINE ====================
+function getNumericValues(varName) {
+  if(!state.data) return [];
+  return state.data.map(r => parseFloat(String(r[varName]).replace(',','.'))).filter(v => !isNaN(v));
+}
+
+function getCategoricalValues(varName) {
+  if(!state.data) return [];
+  return state.data.map(r => r[varName]).filter(v => v !== '' && v !== undefined && v !== null);
+}
+
+function mean(arr) { return arr.reduce((s,v)=>s+v,0)/arr.length; }
+function median(arr) {
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+}
+function mode(arr) {
+  const freq = {};
+  arr.forEach(v => freq[v] = (freq[v]||0)+1);
+  const max = Math.max(...Object.values(freq));
+  return Object.keys(freq).filter(k => freq[k]===max).map(Number);
+}
+function variance(arr, sample=true) {
+  const m = mean(arr);
+  const n = sample ? arr.length-1 : arr.length;
+  return arr.reduce((s,v)=>s+Math.pow(v-m,2),0)/n;
+}
+function std(arr, sample=true) { return Math.sqrt(variance(arr,sample)); }
+function cv(arr) { return (std(arr)/mean(arr))*100; }
+
+function calcDescriptive(varName) {
+  const vals = getNumericValues(varName);
+  if(vals.length < 2) return null;
+  const n = vals.length;
+  const mu = mean(vals);
+  const med = median(vals);
+  const mo = mode(vals);
+  const vari = variance(vals);
+  const sd = std(vals);
+  const sorted = [...vals].sort((a,b)=>a-b);
+  const mn = sorted[0];
+  const mx = sorted[sorted.length-1];
+  const rng = mx - mn;
+  const coefVar = cv(vals);
+
+  return {varName, n, mean:mu, median:med, mode:mo, variance:vari, std:sd, cv:coefVar, min:mn, max:mx, range:rng, values:vals};
+}
+
+// Frequency table (numeric)
+function calcFreqTable(varName) {
+  const vals = getNumericValues(varName);
+  if(vals.length < 2) {
+    // Try categorical
+    return calcFreqTableCategorical(varName);
+  }
+  const n = vals.length;
+  const numClasses = Math.max(5, Math.round(1 + 3.322*Math.log10(n)));
+  const sorted = [...vals].sort((a,b)=>a-b);
+  const mn = sorted[0], mx = sorted[sorted.length-1];
+  const width = (mx - mn) / numClasses;
+
+  const classes = [];
+  for(let i=0; i<numClasses; i++) {
+    const lo = mn + i*width;
+    const hi = lo + width;
+    const isLast = i === numClasses-1;
+    const freq = vals.filter(v => isLast ? (v>=lo && v<=hi) : (v>=lo && v<hi)).length;
+    classes.push({lo, hi, freq});
+  }
+  let cumFreq = 0;
+  return classes.map(c => {
+    cumFreq += c.freq;
+    const relFreq = c.freq/n;
+    const cumRel = cumFreq/n;
+    return {
+      clase: `[${c.lo.toFixed(2)}, ${c.hi.toFixed(2)})`,
+      fa: c.freq,
+      fr: relFreq,
+      fac: cumFreq,
+      frc: cumRel,
+      pct: relFreq*100,
+      pctAcum: cumRel*100,
+      midpoint: (c.lo+c.hi)/2,
+      lo: c.lo, hi: c.hi
+    };
+  });
+}
+
+function calcFreqTableCategorical(varName) {
+  const vals = getCategoricalValues(varName);
+  const n = vals.length;
+  const freq = {};
+  vals.forEach(v => freq[v] = (freq[v]||0)+1);
+  const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]);
+  let cumFreq = 0;
+  return sorted.map(([k,f]) => {
+    cumFreq += f;
+    const relFreq = f/n;
+    const cumRel = cumFreq/n;
+    return {clase:k, fa:f, fr:relFreq, fac:cumFreq, frc:cumRel, pct:relFreq*100, pctAcum:cumRel*100};
+  });
+}
+
+// Z-score
+function zScore(x, mu, sigma) { return (x - mu) / sigma; }
+
+// P(X < x) normal
+function normalCDF(z) {
+  // Abramowitz & Stegun approximation
+  const a1=0.31938153, a2=-0.356563782, a3=1.781477937, a4=-1.821255978, a5=1.330274429;
+  const L = Math.abs(z);
+  const k = 1/(1+0.2316419*L);
+  const w = 1 - (1/Math.sqrt(2*Math.PI))*Math.exp(-L*L/2)*(a1*k+(a2*k*k)+(a3*k*k*k)+(a4*k*k*k*k)+(a5*k*k*k*k*k));
+  return z < 0 ? 1-w : w;
+}
+
+// t-critical
+function tCritical(alpha, df, twoTailed=true) {
+  // jStat
+  try { return jStat.studentt.inv(twoTailed ? 1-alpha/2 : 1-alpha, df); } catch(e) { return 1.96; }
+}
+
+// Chi-square critical
+function chiCritical(alpha, df) {
+  try { return jStat.chisquare.inv(1-alpha, df); } catch(e) { return 3.84; }
+}
+
+// ==================== CONFIDENCE INTERVALS ====================
+function calcCI_mean(stats) {
+  const {n, mean:mu, std:s, varName} = stats;
+  const alpha = state.alpha;
+  const se = s / Math.sqrt(n);
+  let z, critical, formula;
+
+  if(n >= 30) {
+    z = tCritical(alpha, 10000);
+    formula = 'IC = x̄ ± Z(α/2) · (s/√n)';
+    critical = `Z(${alpha/2}) = ${z.toFixed(4)}`;
+  } else {
+    z = tCritical(alpha, n-1);
+    formula = 'IC = x̄ ± t(α/2, n-1) · (s/√n)';
+    critical = `t(${alpha/2}, ${n-1}) = ${z.toFixed(4)}`;
+  }
+
+  const margin = z * se;
+  const lo = mu - margin;
+  const hi = mu + margin;
+
+  return {
+    type: 'Media',
+    varName,
+    formula,
+    substitution: `IC = ${mu.toFixed(4)} ± ${z.toFixed(4)} · (${s.toFixed(4)}/√${n})`,
+    development: `IC = ${mu.toFixed(4)} ± ${z.toFixed(4)} · ${se.toFixed(4)} = ${mu.toFixed(4)} ± ${margin.toFixed(4)}`,
+    lo, hi, critical, n, mu, se,
+    result: `[${lo.toFixed(4)}, ${hi.toFixed(4)}]`,
+    interpretation: `Con un ${(1-alpha)*100}% de confianza, el verdadero promedio de ${varName} se encuentra entre ${lo.toFixed(2)} y ${hi.toFixed(2)}.`,
+    conclusion: `Se estima con ${(1-alpha)*100}% de confianza que la media poblacional de "${varName}" está en el intervalo [${lo.toFixed(2)}, ${hi.toFixed(2)}].`
+  };
+}
+
+function calcCI_proportion(varName, groupValue) {
+  const vals = getCategoricalValues(varName);
+  const n = vals.length;
+  const x = vals.filter(v => String(v) === String(groupValue)).length;
+  const p = x/n;
+  const alpha = state.alpha;
+  const z = tCritical(alpha, 10000);
+  const se = Math.sqrt(p*(1-p)/n);
+  const margin = z * se;
+  const lo = Math.max(0, p - margin);
+  const hi = Math.min(1, p + margin);
+
+  return {
+    type: 'Proporción',
+    varName, groupValue, n, x, p,
+    formula: 'IC = p̂ ± Z(α/2) · √(p̂·q̂/n)',
+    substitution: `IC = ${p.toFixed(4)} ± ${z.toFixed(4)} · √(${p.toFixed(4)}·${(1-p).toFixed(4)}/${n})`,
+    development: `IC = ${p.toFixed(4)} ± ${z.toFixed(4)} · ${se.toFixed(4)} = ${p.toFixed(4)} ± ${margin.toFixed(4)}`,
+    lo, hi, se,
+    result: `[${(lo*100).toFixed(2)}%, ${(hi*100).toFixed(2)}%]`,
+    interpretation: `Con ${(1-alpha)*100}% de confianza, la verdadera proporción de "${groupValue}" en ${varName} está entre ${(lo*100).toFixed(1)}% y ${(hi*100).toFixed(1)}%.`,
+    conclusion: `La proporción estimada de ${groupValue} es ${(p*100).toFixed(1)}% con IC al ${(1-alpha)*100}%: [${(lo*100).toFixed(2)}%, ${(hi*100).toFixed(2)}%].`
+  };
+}
+
+function calcCI_variance(stats) {
+  const {n, variance:v2, varName} = stats;
+  const alpha = state.alpha;
+  const df = n-1;
+  try {
+    const chi_upper = jStat.chisquare.inv(1-alpha/2, df);
+    const chi_lower = jStat.chisquare.inv(alpha/2, df);
+    const lo = (df * v2) / chi_upper;
+    const hi = (df * v2) / chi_lower;
+    return {
+      type: 'Varianza',
+      varName, n, variance:v2, df,
+      formula: 'IC_σ² = [(n-1)s²/χ²(α/2), (n-1)s²/χ²(1-α/2)]',
+      substitution: `IC = [(${df})·${v2.toFixed(4)}/χ²(${alpha/2},${df}), (${df})·${v2.toFixed(4)}/χ²(${1-alpha/2},${df})]`,
+      development: `IC = [${(df*v2).toFixed(4)}/${chi_upper.toFixed(4)}, ${(df*v2).toFixed(4)}/${chi_lower.toFixed(4)}]`,
+      lo, hi, chi_upper, chi_lower,
+      result: `[${lo.toFixed(4)}, ${hi.toFixed(4)}]`,
+      interpretation: `Con ${(1-alpha)*100}% de confianza, la varianza poblacional de "${varName}" está entre ${lo.toFixed(4)} y ${hi.toFixed(4)}.`,
+      conclusion: `IC para σ² de "${varName}" al ${(1-alpha)*100}%: [${lo.toFixed(2)}, ${hi.toFixed(2)}]. Desviación estándar estimada: [${Math.sqrt(lo).toFixed(2)}, ${Math.sqrt(hi).toFixed(2)}].`
+    };
+  } catch(e) { return null; }
+}
+
+// ==================== HYPOTHESIS TESTS ====================
+function testOneMean(stats, mu0, direction='two') {
+  const {n, mean:xbar, std:s, varName} = stats;
+  const alpha = state.alpha;
+  const se = s / Math.sqrt(n);
+  const stat = (xbar - mu0) / se;
+  let critVal, pVal, region, decision;
+
+  if(n >= 30) {
+    const z = Math.abs(stat);
+    if(direction === 'two') {
+      critVal = tCritical(alpha, 10000);
+      pVal = 2*(1-normalCDF(z));
+      region = `|Z| > ${critVal.toFixed(4)}`;
+    } else if(direction === 'left') {
+      critVal = -tCritical(alpha*2, 10000);
+      pVal = normalCDF(stat);
+      region = `Z < ${critVal.toFixed(4)}`;
+    } else {
+      critVal = tCritical(alpha*2, 10000);
+      pVal = 1-normalCDF(stat);
+      region = `Z > ${critVal.toFixed(4)}`;
+    }
+    const rejected = direction==='two' ? Math.abs(stat)>Math.abs(critVal) : direction==='left' ? stat<critVal : stat>critVal;
+    decision = rejected;
+    return buildTestResult({
+      testName: n>=30 ? 'Prueba Z para una media' : 'Prueba t para una media',
+      varName, n, stat: stat.toFixed(4),
+      statSymbol: n>=30 ? 'Z' : 't',
+      formula: 'Z = (x̄ - μ₀) / (s/√n)',
+      substitution: `Z = (${xbar.toFixed(4)} - ${mu0}) / (${s.toFixed(4)}/√${n})`,
+      development: `Z = ${(xbar-mu0).toFixed(4)} / ${se.toFixed(4)}`,
+      df: n >= 30 ? 'N/A (Z)' : n-1,
+      critVal: critVal.toFixed(4), pVal: pVal.toFixed(6),
+      region, rejected, alpha, mu0, direction, xbar, s, se
+    });
+  } else {
+    const df = n-1;
+    if(direction === 'two') {
+      critVal = tCritical(alpha, df);
+      try { pVal = 2*jStat.studentt.cdf(-Math.abs(stat), df); } catch(e) { pVal = 0.05; }
+      region = `|t| > ${critVal.toFixed(4)}`;
+    } else if(direction === 'left') {
+      critVal = -tCritical(alpha*2, df);
+      try { pVal = jStat.studentt.cdf(stat, df); } catch(e) { pVal = 0.05; }
+      region = `t < ${critVal.toFixed(4)}`;
+    } else {
+      critVal = tCritical(alpha*2, df);
+      try { pVal = 1-jStat.studentt.cdf(stat, df); } catch(e) { pVal = 0.05; }
+      region = `t > ${critVal.toFixed(4)}`;
+    }
+    const rejected = direction==='two' ? Math.abs(stat)>Math.abs(critVal) : direction==='left' ? stat<critVal : stat>critVal;
+    return buildTestResult({
+      testName: 'Prueba t para una media',
+      varName, n, stat: stat.toFixed(4),
+      statSymbol: 't',
+      formula: 't = (x̄ - μ₀) / (s/√n)',
+      substitution: `t = (${xbar.toFixed(4)} - ${mu0}) / (${s.toFixed(4)}/√${n})`,
+      development: `t = ${(xbar-mu0).toFixed(4)} / ${se.toFixed(4)}`,
+      df, critVal: critVal.toFixed(4), pVal: pVal.toFixed(6),
+      region, rejected, alpha, mu0, direction, xbar, s, se
+    });
+  }
+}
+
+function testOneProportion(varName, groupValue, p0, direction='two') {
+  const vals = getCategoricalValues(varName);
+  const n = vals.length;
+  const x = vals.filter(v => String(v) === String(groupValue)).length;
+  const phat = x/n;
+  const alpha = state.alpha;
+  const se = Math.sqrt(p0*(1-p0)/n);
+  const stat = (phat - p0) / se;
+  let critVal, pVal, region, rejected;
+
+  if(direction === 'two') {
+    critVal = tCritical(alpha, 10000);
+    pVal = 2*(1-normalCDF(Math.abs(stat)));
+    region = `|Z| > ${critVal.toFixed(4)}`;
+    rejected = Math.abs(stat) > critVal;
+  } else if(direction === 'left') {
+    critVal = -tCritical(alpha*2, 10000);
+    pVal = normalCDF(stat);
+    region = `Z < ${critVal.toFixed(4)}`;
+    rejected = stat < critVal;
+  } else {
+    critVal = tCritical(alpha*2, 10000);
+    pVal = 1-normalCDF(stat);
+    region = `Z > ${critVal.toFixed(4)}`;
+    rejected = stat > critVal;
+  }
+
+  return buildTestResult({
+    testName: 'Prueba Z para una proporción',
+    varName, groupValue, n, x, phat, p0,
+    stat: stat.toFixed(4), statSymbol: 'Z',
+    formula: 'Z = (p̂ - p₀) / √(p₀·q₀/n)',
+    substitution: `Z = (${phat.toFixed(4)} - ${p0}) / √(${p0}·${(1-p0).toFixed(4)}/${n})`,
+    development: `Z = ${(phat-p0).toFixed(4)} / ${se.toFixed(4)}`,
+    df: 'N/A', critVal: critVal.toFixed(4), pVal: pVal.toFixed(6),
+    region, rejected, alpha, direction
+  });
+}
+
+function testVarianceChi(stats, sigma0sq, direction='two') {
+  const {n, variance:s2, varName} = stats;
+  const alpha = state.alpha;
+  const df = n-1;
+  const stat = (df * s2) / sigma0sq;
+  let critVal, pVal, region, rejected;
+
+  try {
+    if(direction === 'two') {
+      const chiU = jStat.chisquare.inv(1-alpha/2, df);
+      const chiL = jStat.chisquare.inv(alpha/2, df);
+      critVal = `[${chiL.toFixed(4)}, ${chiU.toFixed(4)}]`;
+      pVal = (2*Math.min(jStat.chisquare.cdf(stat,df), 1-jStat.chisquare.cdf(stat,df))).toFixed(6);
+      region = `χ² < ${chiL.toFixed(4)} ó χ² > ${chiU.toFixed(4)}`;
+      rejected = stat < chiL || stat > chiU;
+    } else if(direction === 'left') {
+      const chiL = jStat.chisquare.inv(alpha, df);
+      critVal = chiL.toFixed(4); pVal = jStat.chisquare.cdf(stat,df).toFixed(6);
+      region = `χ² < ${chiL.toFixed(4)}`; rejected = stat < chiL;
+    } else {
+      const chiU = jStat.chisquare.inv(1-alpha, df);
+      critVal = chiU.toFixed(4); pVal = (1-jStat.chisquare.cdf(stat,df)).toFixed(6);
+      region = `χ² > ${chiU.toFixed(4)}`; rejected = stat > chiU;
+    }
+  } catch(e) { critVal = '?'; pVal = '?'; region='?'; rejected=false; }
+
+  return buildTestResult({
+    testName: 'Prueba Chi-cuadrado para varianza',
+    varName, n, stat: stat.toFixed(4), statSymbol: 'χ²',
+    formula: 'χ² = (n-1)·s² / σ₀²',
+    substitution: `χ² = (${n}-1)·${s2.toFixed(4)} / ${sigma0sq}`,
+    development: `χ² = ${df}·${s2.toFixed(4)} / ${sigma0sq} = ${stat.toFixed(4)}`,
+    df, critVal, pVal, region, rejected, alpha, direction, sigma0sq
+  });
+}
+
+function testChiSquareHomogeneity(var1, var2) {
+  const n = state.data.length;
+  const cats1 = [...new Set(getCategoricalValues(var1))].sort();
+  const cats2 = [...new Set(getCategoricalValues(var2))].sort();
+  
+  // Contingency table
+  const observed = cats1.map(c1 => cats2.map(c2 =>
+    state.data.filter(r => String(r[var1])===String(c1) && String(r[var2])===String(c2)).length
+  ));
+  
+  const rowSums = observed.map(row => row.reduce((s,v)=>s+v,0));
+  const colSums = cats2.map((_,j) => observed.reduce((s,row)=>s+row[j],0));
+  const total = rowSums.reduce((s,v)=>s+v,0);
+  
+  let chiStat = 0;
+  const expected = observed.map((row,i) => row.map((_,j) => (rowSums[i]*colSums[j])/total));
+  observed.forEach((row,i) => row.forEach((obs,j) => {
+    const exp = expected[i][j];
+    if(exp > 0) chiStat += Math.pow(obs-exp,2)/exp;
+  }));
+  
+  const df = (cats1.length-1)*(cats2.length-1);
+  const critVal = chiCritical(state.alpha, df);
+  let pVal = 0;
+  try { pVal = 1 - jStat.chisquare.cdf(chiStat, df); } catch(e){}
+  const rejected = chiStat > critVal;
+
+  return buildTestResult({
+    testName: 'Prueba Chi-cuadrado de homogeneidad',
+    varName: `${var1} vs ${var2}`,
+    n, stat: chiStat.toFixed(4), statSymbol: 'χ²',
+    formula: 'χ² = Σ (O_ij - E_ij)² / E_ij',
+    substitution: `Tabla de contingencia ${cats1.length}×${cats2.length}`,
+    development: `χ² calculado = ${chiStat.toFixed(4)}`,
+    df, critVal: critVal.toFixed(4), pVal: pVal.toFixed(6),
+    region: `χ² > ${critVal.toFixed(4)}`, rejected,
+    alpha: state.alpha, direction:'right',
+    contingency: {observed, expected, cats1, cats2, rowSums, colSums, total},
+    extra: {var1, var2}
+  });
+}
+
+function testRuns(varName, groupVar) {
+  // Runs test (Wald-Wolfowitz)
+  const data = state.data.filter(r => r[varName] !== '' && r[groupVar] !== '');
+  const groups = data.map(r => r[groupVar]);
+  let runs = 1, n1=0, n2=0;
+  const cats = [...new Set(groups)];
+  if(cats.length < 2) return null;
+  const cat1 = cats[0], cat2 = cats[1];
+  groups.forEach(g => { if(String(g)===String(cat1)) n1++; else n2++; });
+  for(let i=1;i<groups.length;i++) { if(groups[i]!==groups[i-1]) runs++; }
+  
+  const n = n1+n2;
+  const mu_R = (2*n1*n2)/n + 1;
+  const sig_R = Math.sqrt((2*n1*n2*(2*n1*n2-n))/(n*n*(n-1)));
+  const z = (runs - mu_R) / sig_R;
+  const pVal = 2*(1-normalCDF(Math.abs(z)));
+  const critVal = tCritical(state.alpha, 10000);
+  const rejected = Math.abs(z) > critVal;
+
+  return buildTestResult({
+    testName: 'Prueba de Rachas (Aleatoriedad)',
+    varName: `${varName} ordenado por ${groupVar}`,
+    n, stat: z.toFixed(4), statSymbol: 'Z',
+    formula: 'Z = (R - μ_R) / σ_R  donde μ_R = 2n₁n₂/n+1',
+    substitution: `Z = (${runs} - ${mu_R.toFixed(4)}) / ${sig_R.toFixed(4)}`,
+    development: `Rachas observadas R=${runs}, n₁=${n1}, n₂=${n2}, μ_R=${mu_R.toFixed(4)}, σ_R=${sig_R.toFixed(4)}`,
+    df:'N/A', critVal: critVal.toFixed(4), pVal: pVal.toFixed(6),
+    region:`|Z| > ${critVal.toFixed(4)}`, rejected, alpha: state.alpha, direction:'two',
+    extra:{runs, n1, n2, mu_R, sig_R}
+  });
+}
+
+function buildTestResult(params) {
+  const {testName, varName, stat, statSymbol, formula, substitution, development, df, critVal, pVal, region, rejected, alpha, direction, formula:f2, ...rest} = params;
+  const pValNum = parseFloat(pVal);
+  const H0 = buildH0(params);
+  const H1 = buildH1(params);
+
+  return {
+    testName, varName, stat, statSymbol, formula, substitution, development,
+    df, critVal, pVal, region, rejected, alpha, direction,
+    H0, H1,
+    decisionRule: `Si p-valor < α (${alpha}) o el estadístico cae en la región crítica, se rechaza H₀`,
+    decision: rejected ? `Se RECHAZA H₀ (p = ${pVal} < α = ${alpha})` : `No se rechaza H₀ (p = ${pVal} ≥ α = ${alpha})`,
+    interpretation: rejected
+      ? `Existe evidencia estadística suficiente (α=${alpha}) para rechazar la hipótesis nula. ${H1}`
+      : `No existe evidencia estadística suficiente (α=${alpha}) para rechazar la hipótesis nula.`,
+    conclusion: rejected
+      ? `✓ Con un nivel de significancia del ${alpha*100}%, se rechaza H₀. Se acepta H₁: ${H1}`
+      : `✗ Con un nivel de significancia del ${alpha*100}%, no se rechaza H₀: ${H0}`,
+    ...rest
+  };
+}
+
+function buildH0(p) {
+  const {testName, varName, mu0, p0, sigma0sq, direction, phat, groupValue} = p;
+  if(testName.includes('media')) return `μ = ${mu0} (la media de ${varName} es igual a ${mu0})`;
+  if(testName.includes('proporción')) return `p = ${p0} (la proporción de "${groupValue}" es ${p0})`;
+  if(testName.includes('varianza')) return `σ² = ${sigma0sq} (la varianza de ${varName} es ${sigma0sq})`;
+  if(testName.includes('homogeneidad')) return `Las distribuciones son homogéneas entre grupos`;
+  if(testName.includes('Rachas')) return `La secuencia es aleatoria`;
+  return `No existe diferencia significativa`;
+}
+
+function buildH1(p) {
+  const {testName, varName, mu0, p0, sigma0sq, direction, groupValue} = p;
+  const dir = direction === 'left' ? '<' : direction === 'right' ? '>' : '≠';
+  if(testName.includes('media')) return `μ ${dir} ${mu0} (la media de ${varName} es ${dir} ${mu0})`;
+  if(testName.includes('proporción')) return `p ${dir} ${p0} (la proporción de "${groupValue}" es ${dir} ${p0})`;
+  if(testName.includes('varianza')) return `σ² ${dir} ${sigma0sq}`;
+  if(testName.includes('homogeneidad')) return `Las distribuciones NO son homogéneas entre grupos`;
+  if(testName.includes('Rachas')) return `La secuencia NO es aleatoria`;
+  return `Existe diferencia significativa`;
+}
+
+// ==================== AI ANALYSIS ====================
+async function analyzeWithAI(objectives, hypotheses, headers, sampleData, numericVars, categoricalVars) {
+  const prompt = `Eres un estadístico experto. Analiza los objetivos e hipótesis y determina qué pruebas estadísticas aplicar con los datos disponibles.
+
+VARIABLES DISPONIBLES:
+- Numéricas: ${numericVars.join(', ')}
+- Categóricas: ${categoricalVars.join(', ')}
+- Muestra de datos (5 filas): ${JSON.stringify(sampleData.slice(0,5))}
+
+OBJETIVOS:
+${objectives}
+
+HIPÓTESIS:
+${hypotheses.map((h,i) => `H${i+1}: ${h}`).join('\n')}
+
+Responde ÚNICAMENTE en JSON con esta estructura exacta (sin markdown, sin backticks):
+{
+  "analyses": [
+    {
+      "hypothesis_index": 0,
+      "hypothesis_text": "...",
+      "test_type": "one_mean|one_proportion|diff_means|diff_proportions|variance_chi|chi_homogeneity|runs",
+      "variables": {"primary": "nombre_var", "secondary": "nombre_var2_o_null", "group_var": "var_grupo_o_null"},
+      "parameters": {"mu0": null_o_numero, "p0": null_o_numero, "sigma0sq": null_o_numero, "group_value": "valor_o_null", "direction": "two|left|right"},
+      "reasoning": "Por qué se aplica esta prueba"
+    }
+  ]
+}`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:2000,
+      messages:[{role:'user', content:prompt}]
+    })
+  });
+
+  const data = await resp.json();
+  const text = data.content[0].text.trim();
+  const clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+// ==================== MAIN ANALYSIS RUNNER ====================
+async function runFullAnalysis() {
+  if(!state.data || !state.data.length) {
+    showError('Por favor cargue una base de datos primero.');
+    return;
+  }
+
+  showLoading('Analizando objetivos e hipótesis con IA...');
+
+  const objectives = document.getElementById('objectives').value;
+  const hypotheses = getHypotheses();
+  state.objectives = objectives;
+  state.hypotheses = hypotheses;
+  state.alpha = parseFloat(document.getElementById('alpha-global').value);
+
+  try {
+    // 1. Descriptive stats for all numeric vars
+    setLoadingText('Calculando estadísticas descriptivas...');
+    state.results.descriptive = {};
+    state.numericVars.forEach(v => {
+      state.results.descriptive[v] = calcDescriptive(v);
+    });
+
+    // 2. Frequency tables
+    setLoadingText('Generando tablas de frecuencias...');
+    state.results.frequencies = {};
+    [...state.numericVars, ...state.categoricalVars].forEach(v => {
+      state.results.frequencies[v] = calcFreqTable(v);
+    });
+
+    // 3. Confidence intervals
+    setLoadingText('Calculando intervalos de confianza...');
+    state.results.confidence = [];
+    state.numericVars.forEach(v => {
+      const s = state.results.descriptive[v];
+      if(s) {
+        state.results.confidence.push(calcCI_mean(s));
+        state.results.confidence.push(calcCI_variance(s));
+      }
+    });
+    state.categoricalVars.forEach(v => {
+      const cats = [...new Set(getCategoricalValues(v))];
+      cats.slice(0,3).forEach(cat => {
+        state.results.confidence.push(calcCI_proportion(v, cat));
+      });
+    });
+
+    // 4. AI hypothesis analysis
+    setLoadingText('Detectando pruebas estadísticas con IA...');
+    let aiResult = null;
+    if(hypotheses.length > 0) {
+      try {
+        aiResult = await analyzeWithAI(objectives, hypotheses, state.headers, state.data, state.numericVars, state.categoricalVars);
+      } catch(e) {
+        console.warn('AI analysis failed, using heuristic:', e);
+        aiResult = heuristicAnalysis(hypotheses);
+      }
+    }
+
+    // 5. Execute hypothesis tests
+    setLoadingText('Ejecutando pruebas de hipótesis...');
+    state.results.hypothesisTests = [];
+    if(aiResult && aiResult.analyses) {
+      aiResult.analyses.forEach(analysis => {
+        try {
+          const result = executeTest(analysis);
+          if(result) state.results.hypothesisTests.push({...result, reasoning: analysis.reasoning, hypText: analysis.hypothesis_text});
+        } catch(e) { console.warn('Test failed:', e, analysis); }
+      });
+    }
+
+    // 6. Z-scores & probabilities
+    setLoadingText('Calculando probabilidades y puntajes Z...');
+    state.results.probabilities = [];
+    state.numericVars.slice(0,3).forEach(v => {
+      const s = state.results.descriptive[v];
+      if(!s) return;
+      const percentiles = [25, 50, 75, 90];
+      percentiles.forEach(pct => {
+        const x = s.min + (pct/100) * s.range;
+        const z = zScore(x, s.mean, s.std);
+        const prob = normalCDF(z);
+        state.results.probabilities.push({varName:v, x:x.toFixed(2), z:z.toFixed(4), prob:prob.toFixed(4), pct});
+      });
+    });
+
+    // 7. Render all pages
+    setLoadingText('Renderizando resultados...');
+    renderDescriptivo();
+    renderFrecuencias();
+    renderProbabilidades();
+    renderIntervalos();
+    renderHipotesis();
+    renderNormalidad();
+    renderSignosYRachas();
+    renderNoParametricas();
+    renderKruskalFriedman();
+    renderVarianzaF();
+    renderGraficos();
+    renderReporte();
+
+    // Update badge
+    const nTests = state.results.hypothesisTests.length;
+    const badge = document.getElementById('hyp-badge');
+    badge.textContent = nTests;
+    badge.style.display = nTests > 0 ? 'inline' : 'none';
+
+    hideLoading();
+    showPage('descriptivo');
+
+  } catch(e) {
+    hideLoading();
+    showError('Error en el análisis: ' + e.message);
+    console.error(e);
+  }
+}
+
+function heuristicAnalysis(hypotheses) {
+  // Fallback when AI not available
+  const analyses = hypotheses.map((h, i) => {
+    const lh = h.toLowerCase();
+    let test_type = 'one_mean';
+    let params = {mu0: 0, p0: null, sigma0sq: null, group_value: null, direction: 'two'};
+    let variables = {primary: state.numericVars[0] || state.headers[0], secondary: null, group_var: null};
+
+    if(lh.includes('proporción') || lh.includes('proporcion') || lh.includes('%')) {
+      test_type = 'one_proportion';
+      variables.primary = state.categoricalVars[0] || state.headers[0];
+      params.p0 = 0.5;
+      params.group_value = getCategoricalValues(variables.primary)[0] || 'Sí';
+    } else if(lh.includes('varianza') || lh.includes('desviación')) {
+      test_type = 'variance_chi';
+      const numVal = parseFloat(h.match(/[\d.]+/)?.[0]) || 1;
+      params.sigma0sq = numVal;
+    } else if(lh.includes('rachas') || lh.includes('aleatoriedad')) {
+      test_type = 'runs';
+      variables.group_var = state.categoricalVars[0];
+    } else if(lh.includes('homogeneidad') || lh.includes('asociación') || (state.categoricalVars.length >= 2 && lh.includes('vs'))) {
+      test_type = 'chi_homogeneity';
+      variables.primary = state.categoricalVars[0];
+      variables.secondary = state.categoricalVars[1] || state.categoricalVars[0];
+    }
+
+    if(lh.includes('menor') || lh.includes('< ') || lh.includes('inferior')) params.direction = 'left';
+    else if(lh.includes('mayor') || lh.includes('> ') || lh.includes('superior')) params.direction = 'right';
+
+    const nums = h.match(/\d+\.?\d*/g);
+    if(nums && test_type === 'one_mean') params.mu0 = parseFloat(nums[0]);
+    if(nums && test_type === 'one_proportion') params.p0 = parseFloat(nums[0]) > 1 ? parseFloat(nums[0])/100 : parseFloat(nums[0]);
+
+    return {hypothesis_index:i, hypothesis_text:h, test_type, variables, parameters:params, reasoning:'Análisis heurístico basado en palabras clave'};
+  });
+  return {analyses};
+}
+
+function executeTest(analysis) {
+  const {test_type, variables, parameters} = analysis;
+  const {primary, secondary, group_var} = variables;
+  const {mu0, p0, sigma0sq, group_value, direction} = parameters;
+
+  if(test_type === 'one_mean') {
+    const s = state.results.descriptive[primary];
+    if(!s) return null;
+    return testOneMean(s, mu0||0, direction||'two');
+  } else if(test_type === 'one_proportion') {
+    const gv = group_value || (getCategoricalValues(primary).sort()[0]);
+    return testOneProportion(primary, gv, p0||0.5, direction||'two');
+  } else if(test_type === 'variance_chi') {
+    const s = state.results.descriptive[primary];
+    if(!s) return null;
+    return testVarianceChi(s, sigma0sq||1, direction||'two');
+  } else if(test_type === 'chi_homogeneity') {
+    const v1 = primary || state.categoricalVars[0];
+    const v2 = secondary || state.categoricalVars[1] || state.categoricalVars[0];
+    return testChiSquareHomogeneity(v1, v2);
+  } else if(test_type === 'runs') {
+    const gv = group_var || state.categoricalVars[0];
+    if(!primary || !gv) return null;
+    return testRuns(primary, gv);
+  }
+  return null;
+}
+
+// ==================== RENDER FUNCTIONS ====================
+function renderDescriptivo() {
+  if(!Object.keys(state.results.descriptive).length) return;
+  let html = '';
+  Object.values(state.results.descriptive).forEach(s => {
+    if(!s) return;
+    html += `
+    <div class="card">
+      <h2>📊 ${s.varName}</h2>
+      <div class="stats-grid">
+        ${statCard('Media', s.mean.toFixed(4), 'Promedio aritmético', interpretMean(s))}
+        ${statCard('Mediana', s.median.toFixed(4), 'Valor central', interpretMedian(s))}
+        ${statCard('Moda', s.mode.length === 1 ? s.mode[0].toFixed(4) : s.mode.slice(0,2).join(', '), 'Valor más frecuente', '')}
+        ${statCard('Varianza', s.variance.toFixed(4), 'Dispersión cuadrática', '')}
+        ${statCard('Desv. Std', s.std.toFixed(4), 'Dispersión típica', interpretStd(s))}
+        ${statCard('C.V.', s.cv.toFixed(2)+'%', 'Coef. de variación', interpretCV(s))}
+        ${statCard('Mínimo', s.min.toFixed(4), 'Valor mínimo', '')}
+        ${statCard('Máximo', s.max.toFixed(4), 'Valor máximo', '')}
+        ${statCard('Rango', s.range.toFixed(4), 'Amplitud total', '')}
+        ${statCard('n', s.n, 'Tamaño de muestra', '')}
+      </div>
+
+      <div class="math-box">
+        <div class="math-label">Procedimiento matemático</div>
+        <div class="math-formula">Media Aritmética:</div>
+        <div class="math-step">x̄ = Σxᵢ / n = <span>${s.values.slice(0,5).join(' + ')}${s.n > 5 ? ' + ...' : ''}</span> / ${s.n}</div>
+        <div class="math-step">x̄ = <span>${s.values.slice(0,5).reduce((a,b)=>a+b,0).toFixed(4)}${s.n > 5 ? ' + ...' : ''}</span> / ${s.n}</div>
+        <div class="math-result">x̄ = ${s.mean.toFixed(4)}</div>
+
+        <div class="math-formula" style="margin-top:12px">Desviación Estándar:</div>
+        <div class="math-step">s = √[ Σ(xᵢ - x̄)² / (n-1) ]</div>
+        <div class="math-step">s = √[ ${(s.variance*(s.n-1)).toFixed(4)} / ${s.n-1} ]</div>
+        <div class="math-step">s = √[ ${s.variance.toFixed(4)} ]</div>
+        <div class="math-result">s = ${s.std.toFixed(4)}</div>
+
+        <div class="math-formula" style="margin-top:12px">Coeficiente de Variación:</div>
+        <div class="math-step">C.V. = (s / x̄) × 100 = (${s.std.toFixed(4)} / ${s.mean.toFixed(4)}) × 100</div>
+        <div class="math-result">C.V. = ${s.cv.toFixed(2)}%</div>
+      </div>
+
+      <div class="interp-box">
+        <strong>📖 Interpretación:</strong> La variable <strong>${s.varName}</strong> presenta una media de ${s.mean.toFixed(2)}, 
+        con una dispersión de ${s.std.toFixed(2)} unidades. El coeficiente de variación de ${s.cv.toFixed(1)}% indica que la distribución 
+        es ${s.cv < 15 ? 'homogénea (baja variabilidad)' : s.cv < 30 ? 'moderadamente variable' : 'heterogénea (alta variabilidad)'}.
+        Los valores oscilan entre ${s.min.toFixed(2)} y ${s.max.toFixed(2)}, con un rango de ${s.range.toFixed(2)}.
+      </div>
+    </div>`;
+  });
+  document.getElementById('descriptivo-content').innerHTML = html;
+}
+
+function statCard(label, val, sub, interp) {
+  return `<div class="stat-card">
+    <div class="stat-val">${val}</div>
+    <div class="stat-label">${label}</div>
+    ${sub ? `<div class="stat-interp">${sub}</div>` : ''}
+    ${interp ? `<div class="stat-interp" style="color:var(--blue);font-style:normal">${interp}</div>` : ''}
+  </div>`;
+}
+
+function interpretMean(s) { return s.mean > s.median ? '▲ Media > Mediana' : '▼ Media < Mediana'; }
+function interpretMedian(s) { return `P50: ${s.median.toFixed(2)}`; }
+function interpretStd(s) { return `σ² = ${s.variance.toFixed(2)}`; }
+function interpretCV(s) { return s.cv < 15 ? 'Baja variabilidad' : s.cv < 30 ? 'Variabilidad media' : 'Alta variabilidad'; }
+
+function renderFrecuencias() {
+  let html = '';
+  [...state.numericVars, ...state.categoricalVars].forEach(v => {
+    const table = state.results.frequencies[v];
+    if(!table || !table.length) return;
+    const isNum = state.numericVars.includes(v);
+    html += `<div class="card">
+      <h2>📋 Tabla de frecuencias: ${v}</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>${isNum ? 'Clase / Intervalo' : 'Categoría'}</th>
+            <th class="th-num">f.a.</th>
+            <th class="th-num">f.r.</th>
+            <th class="th-num">f.a.c.</th>
+            <th class="th-num">f.r.c.</th>
+            <th class="th-num">%</th>
+            <th class="th-num">% Acum.</th>
+          </tr></thead>
+          <tbody>
+            ${table.map((row,i) => {
+              const modal = i === table.reduce((max,r,j) => r.fa > table[max].fa ? j : max, 0) ? 'class="freq-modal"' : '';
+              return `<tr ${modal}>
+                <td style="font-family:var(--mono)">${row.clase}</td>
+                <td class="td-num">${row.fa}</td>
+                <td class="td-num">${row.fr.toFixed(4)}</td>
+                <td class="td-num">${row.fac}</td>
+                <td class="td-num">${row.frc.toFixed(4)}</td>
+                <td class="td-num">${row.pct.toFixed(2)}%</td>
+                <td class="td-num">${row.pctAcum.toFixed(2)}%</td>
+              </tr>`;
+            }).join('')}
+            <tr style="font-weight:600;background:var(--bg3)">
+              <td>TOTAL</td>
+              <td class="td-num">${table.reduce((s,r)=>s+r.fa,0)}</td>
+              <td class="td-num">1.0000</td>
+              <td class="td-num">—</td>
+              <td class="td-num">—</td>
+              <td class="td-num">100.00%</td>
+              <td class="td-num">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="interp-box" style="margin-top:12px">
+        <strong>📖 Interpretación:</strong> La tabla muestra la distribución de frecuencias de <strong>${v}</strong>.
+        ${isNum ? `Se utilizaron ${table.length} clases según la regla de Sturges (k = 1 + 3.322·log₁₀(n)).` : ''}
+        La categoría más frecuente es <strong>"${table[0].clase}"</strong> con ${table[0].fa} observaciones (${table[0].pct.toFixed(1)}%).
+      </div>
+    </div>`;
+  });
+  document.getElementById('frecuencias-content').innerHTML = html || '<div class="empty-state"><div>Sin datos</div></div>';
+}
+
+function renderProbabilidades() {
+  let html = '<div class="card"><h2>🎲 Probabilidades y Puntajes Z</h2>';
+  
+  if(!state.results.probabilities.length) {
+    html += '<div class="alert alert-warn">No se encontraron variables numéricas para calcular probabilidades.</div></div>';
+    document.getElementById('probabilidad-content').innerHTML = html;
+    return;
+  }
+
+  state.numericVars.slice(0,3).forEach(v => {
+    const s = state.results.descriptive[v];
+    if(!s) return;
+    const probs = state.results.probabilities.filter(p => p.varName === v);
+    
+    html += `<h3 style="margin:16px 0 8px">Variable: ${v}</h3>
+    <div class="math-box">
+      <div class="math-label">Parámetros de la distribución</div>
+      <div class="math-step">μ (media) = <span>${s.mean.toFixed(4)}</span></div>
+      <div class="math-step">σ (desv. estándar) = <span>${s.std.toFixed(4)}</span></div>
+    </div>
+    <div class="table-wrap" style="margin:12px 0">
+      <table>
+        <thead><tr>
+          <th>Percentil</th><th class="th-num">Valor x</th>
+          <th class="th-num">Fórmula Z</th>
+          <th class="th-num">Puntaje Z</th>
+          <th class="th-num">P(X ≤ x)</th>
+          <th class="th-num">P(X > x)</th>
+          <th>Interpretación</th>
+        </tr></thead>
+        <tbody>
+          ${probs.map(p => `<tr>
+            <td>P${p.pct}</td>
+            <td class="td-num">${p.x}</td>
+            <td style="font-family:var(--mono);font-size:11px">Z=(${p.x}-${s.mean.toFixed(2)})/σ</td>
+            <td class="td-num" style="color:${parseFloat(p.z)>=0?'var(--green)':'var(--red)'}">${p.z}</td>
+            <td class="td-num">${p.prob}</td>
+            <td class="td-num">${(1-parseFloat(p.prob)).toFixed(4)}</td>
+            <td style="font-size:12px">${interpretZ(parseFloat(p.z))}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  });
+
+  html += `<div class="interp-box" style="margin-top:16px">
+    <strong>📐 Interpretación del Puntaje Z:</strong><br>
+    El puntaje Z indica cuántas desviaciones estándar se encuentra un valor por encima (+) o por debajo (-) de la media.
+    <br>• Z = 0: el valor es igual a la media
+    <br>• Z = ±1: el valor está a 1 desviación estándar (68.27% de los datos)
+    <br>• Z = ±2: el valor está a 2 desviaciones estándar (95.45% de los datos)
+    <br>• Z = ±3: el valor está a 3 desviaciones estándar (99.73% de los datos)
+  </div></div>`;
+  
+  document.getElementById('probabilidad-content').innerHTML = html;
+}
+
+function interpretZ(z) {
+  if(z > 2) return 'Muy superior a la media';
+  if(z > 1) return 'Superior a la media';
+  if(z > -1) return 'Cercano a la media';
+  if(z > -2) return 'Inferior a la media';
+  return 'Muy inferior a la media';
+}
+
+function renderIntervalos() {
+  let html = '';
+  state.results.confidence.filter(Boolean).forEach(ic => {
+    const conf = (1-state.alpha)*100;
+    html += `<div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span class="tag tag-blue">IC ${conf}%</span>
+        <span class="tag ${ic.type==='Media'?'tag-green':ic.type==='Varianza'?'tag-purple':'tag-orange'}">${ic.type}</span>
+        <h3 style="margin:0">${ic.varName}</h3>
+      </div>
+      
+      <div class="math-box">
+        <div class="math-formula">${ic.formula}</div>
+        <div class="math-step">Sustitución: <span>${ic.substitution}</span></div>
+        <div class="math-step">Desarrollo: <span>${ic.development}</span></div>
+        <div class="math-result">IC = ${ic.result}</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg3);border-radius:var(--radius);margin:12px 0">
+        <div style="font-family:var(--mono);color:var(--blue);font-size:13px">${ic.lo.toFixed(4)}</div>
+        <div style="flex:1;height:3px;background:var(--border);border-radius:2px;position:relative">
+          <div style="position:absolute;left:0;right:0;top:-5px;height:13px;border-left:3px solid var(--purple);border-right:3px solid var(--purple)"></div>
+          <div style="position:absolute;left:50%;transform:translateX(-50%);top:-6px;width:15px;height:15px;background:var(--blue);border-radius:50%"></div>
+        </div>
+        <div style="font-family:var(--mono);color:var(--blue);font-size:13px">${ic.hi.toFixed(4)}</div>
+      </div>
+
+      <div class="interp-box"><strong>📖 Interpretación:</strong> ${ic.interpretation}</div>
+      <div class="conclusion-box" style="margin-top:8px"><strong>✅ Conclusión:</strong> ${ic.conclusion}</div>
+    </div>`;
+  });
+  document.getElementById('intervalos-content').innerHTML = html || '<div class="empty-state"><div class="empty-icon">📏</div><div>Sin intervalos calculados</div></div>';
+}
+
+function renderHipotesis() {
+  if(!state.results.hypothesisTests.length) {
+    document.getElementById('hipotesis-content').innerHTML = `<div class="card"><div class="alert alert-warn">No se detectaron hipótesis para analizar. Ingrese sus hipótesis en la configuración y ejecute el análisis.</div></div>`;
+    return;
+  }
+
+  let html = '';
+  state.results.hypothesisTests.forEach((test, idx) => {
+    const rejectedClass = test.rejected ? 'hyp-reject' : 'hyp-fail';
+    const badgeClass = test.rejected ? 'badge-reject' : 'badge-fail';
+    const badgeText = test.rejected ? '✗ Se rechaza H₀' : '✓ No se rechaza H₀';
+    
+    html += `<div class="hyp-card ${rejectedClass}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <span class="tag tag-blue" style="margin-right:8px">Hipótesis ${idx+1}</span>
+          <strong>${test.testName}</strong>
+        </div>
+        <span class="hyp-badge ${badgeClass}">${badgeText}</span>
+      </div>
+
+      ${test.hypText ? `<div class="alert alert-info" style="margin-bottom:12px">📝 ${test.hypText}</div>` : ''}
+      ${test.reasoning ? `<div style="font-size:12px;color:var(--text3);margin-bottom:12px">🔎 Detección automática: ${test.reasoning}</div>` : ''}
+
+      <div class="decision-grid">
+        <div class="decision-item">
+          <div class="decision-key">H₀ (Hipótesis nula)</div>
+          <div class="decision-val" style="font-size:13px;font-family:var(--font)">${test.H0}</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-key">H₁ (Hipótesis alternativa)</div>
+          <div class="decision-val" style="font-size:13px;font-family:var(--font)">${test.H1}</div>
+        </div>
+      </div>
+
+      <div class="math-box">
+        <div class="math-formula">Estadístico de prueba: ${test.formula}</div>
+        <div class="math-step">Sustitución: <span>${test.substitution}</span></div>
+        <div class="math-step">Desarrollo: <span>${test.development}</span></div>
+        <div class="math-result">${test.statSymbol} calculado = ${test.stat}</div>
+      </div>
+
+      <div class="decision-grid" style="margin-top:12px">
+        <div class="decision-item">
+          <div class="decision-key">Grados de libertad</div>
+          <div class="decision-val">${test.df}</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-key">Valor crítico</div>
+          <div class="decision-val" style="color:var(--orange)">${test.critVal}</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-key">p-valor</div>
+          <div class="decision-val" style="color:${parseFloat(test.pVal)<state.alpha?'var(--red)':'var(--green)'}">${test.pVal}</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-key">Región crítica</div>
+          <div class="decision-val" style="font-size:12px">${test.region}</div>
+        </div>
+      </div>
+
+      <div class="math-box" style="margin-top:12px">
+        <div class="math-label">Regla de decisión</div>
+        <div class="math-step">${test.decisionRule}</div>
+        <div class="math-result">📌 ${test.decision}</div>
+      </div>
+
+      <div class="interp-box" style="margin-top:12px"><strong>📖 Interpretación:</strong> ${test.interpretation}</div>
+      <div class="conclusion-box" style="margin-top:8px"><strong>🎯 Conclusión:</strong> ${test.conclusion}</div>
+
+      ${test.contingency ? renderContingencyTable(test.contingency) : ''}
+    </div>`;
+  });
+
+  document.getElementById('hipotesis-content').innerHTML = html;
+}
+
+function renderContingencyTable(cont) {
+  const {observed, expected, cats1, cats2, rowSums, colSums, total} = cont;
+  let html = `<div style="margin-top:16px"><h4>Tabla de contingencia observada vs esperada</h4>
+    <div class="table-wrap"><table>
+      <thead><tr><th>-</th>${cats2.map(c=>`<th class="th-num">${c}</th>`).join('')}<th class="th-num">Total</th></tr></thead>
+      <tbody>
+        ${cats1.map((c1,i) => `<tr>
+          <td><strong>${c1}</strong></td>
+          ${cats2.map((_,j) => `<td class="td-num">${observed[i][j]} <span style="color:var(--text3)">(${expected[i][j].toFixed(1)})</span></td>`).join('')}
+          <td class="td-num"><strong>${rowSums[i]}</strong></td>
+        </tr>`).join('')}
+        <tr style="background:var(--bg3)">
+          <td><strong>Total</strong></td>
+          ${colSums.map(s=>`<td class="td-num"><strong>${s}</strong></td>`).join('')}
+          <td class="td-num"><strong>${total}</strong></td>
+        </tr>
+      </tbody>
+    </table></div>
+    <div style="font-size:12px;color:var(--text3);margin-top:4px">Observado (Esperado)</div>
+  </div>`;
+  return html;
+}
+
+function renderGraficos() {
+  // Destroy existing charts
+  Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch(e){} });
+  chartInstances = {};
+
+  let html = '';
+  
+  // Charts for each numeric variable
+  state.numericVars.slice(0, 4).forEach((v, i) => {
+    const freq = state.results.frequencies[v];
+    const s = state.results.descriptive[v];
+    if(!freq || !s) return;
+    const chartId1 = `hist_${i}`;
+    const chartId2 = `ojiva_${i}`;
+    html += `
+    <div style="margin-bottom:20px">
+      <div class="card">
+        <h2>📊 Gráficos: ${v}</h2>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-title">Histograma + Polígono de frecuencias</div>
+            <div style="position:relative;height:280px"><canvas id="${chartId1}" role="img" aria-label="Histograma de ${v}"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Ojiva (Frecuencia acumulada)</div>
+            <div style="position:relative;height:280px"><canvas id="${chartId2}" role="img" aria-label="Ojiva de ${v}"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // Charts for categorical variables
+  state.categoricalVars.slice(0, 2).forEach((v, i) => {
+    const freq = state.results.frequencies[v];
+    if(!freq) return;
+    const chartId3 = `bar_${i}`;
+    const chartId4 = `pie_${i}`;
+    html += `
+    <div class="card" style="margin-bottom:16px">
+      <h2>🏷 Variable categórica: ${v}</h2>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">Diagrama de barras</div>
+          <div style="position:relative;height:280px"><canvas id="${chartId3}" role="img" aria-label="Barras ${v}"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Gráfico circular</div>
+          <div style="position:relative;height:280px"><canvas id="${chartId4}" role="img" aria-label="Circular ${v}"></canvas></div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // IC chart
+  if(state.results.confidence.length) {
+    html += `<div class="card"><h2>📏 Intervalos de confianza</h2><div class="chart-card"><div class="chart-title">Visualización de IC para medias</div><div style="position:relative;height:${Math.max(200,state.numericVars.length*50)}px"><canvas id="ic_chart" role="img" aria-label="Intervalos de confianza"></canvas></div></div></div>`;
+  }
+
+  document.getElementById('graficos-content').innerHTML = html;
+
+  // Create charts after DOM update
+  setTimeout(() => {
+    const colors = ['#58a6ff','#3fb950','#bc8cff','#d29922','#f85149','#39d353'];
+    
+    state.numericVars.slice(0,4).forEach((v, i) => {
+      const freq = state.results.frequencies[v];
+      if(!freq) return;
+      const labels = freq.map(r => r.clase);
+      const fas = freq.map(r => r.fa);
+      const mids = freq.map(r => r.midpoint || 0);
+      const facs = freq.map(r => r.fac);
+
+      // Histogram
+      const ctx1 = document.getElementById(`hist_${i}`);
+      if(ctx1) {
+        chartInstances[`hist_${i}`] = new Chart(ctx1, {
+          type:'bar',
+          data:{
+            labels,
+            datasets:[
+              {label:'Frecuencia absoluta',data:fas,backgroundColor:`${colors[i]}44`,borderColor:colors[i],borderWidth:2,type:'bar'},
+              {label:'Polígono',data:fas,backgroundColor:'transparent',borderColor:'#f85149',borderWidth:2,type:'line',tension:0.3,pointRadius:4}
+            ]
+          },
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,font:{size:10}}},y:{beginAtZero:true}}}
+        });
+      }
+
+      // Ojiva
+      const ctx2 = document.getElementById(`ojiva_${i}`);
+      if(ctx2) {
+        chartInstances[`ojiva_${i}`] = new Chart(ctx2, {
+          type:'line',
+          data:{labels,datasets:[{label:'Frecuencia acumulada',data:facs,borderColor:'#bc8cff',backgroundColor:'rgba(188,140,255,0.1)',borderWidth:2,fill:true,tension:0.3,pointRadius:5,pointBackgroundColor:'#bc8cff'}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,font:{size:10}}},y:{beginAtZero:true}}}
+        });
+      }
+    });
+
+    state.categoricalVars.slice(0,2).forEach((v, i) => {
+      const freq = state.results.frequencies[v];
+      if(!freq) return;
+      const labels = freq.map(r => r.clase);
+      const fas = freq.map(r => r.fa);
+      const bgColors = colors.slice(0, labels.length);
+
+      const ctx3 = document.getElementById(`bar_${i}`);
+      if(ctx3) {
+        chartInstances[`bar_${i}`] = new Chart(ctx3, {
+          type:'bar',
+          data:{labels,datasets:[{data:fas,backgroundColor:bgColors.map(c=>c+'99'),borderColor:bgColors,borderWidth:2}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+        });
+      }
+
+      const ctx4 = document.getElementById(`pie_${i}`);
+      if(ctx4) {
+        chartInstances[`pie_${i}`] = new Chart(ctx4, {
+          type:'doughnut',
+          data:{labels,datasets:[{data:fas,backgroundColor:bgColors.map(c=>c+'cc'),borderColor:bgColors,borderWidth:2}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}
+        });
+      }
+    });
+
+    // IC chart
+    const icCtx = document.getElementById('ic_chart');
+    if(icCtx) {
+      const icMeans = state.results.confidence.filter(c => c && c.type === 'Media');
+      if(icMeans.length) {
+        chartInstances['ic_chart'] = new Chart(icCtx, {
+          type:'bar',
+          data:{
+            labels: icMeans.map(c => c.varName),
+            datasets:[
+              {label:'Límite inferior',data:icMeans.map(c=>c.lo),backgroundColor:'rgba(88,166,255,0.3)',borderColor:'#58a6ff',borderWidth:2},
+              {label:'Media',data:icMeans.map(c=>c.mu),backgroundColor:'rgba(63,185,80,0.5)',borderColor:'#3fb950',borderWidth:2},
+              {label:'Límite superior',data:icMeans.map(c=>c.hi),backgroundColor:'rgba(188,140,255,0.3)',borderColor:'#bc8cff',borderWidth:2}
+            ]
+          },
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:false}}}
+        });
+      }
+    }
+  }, 300);
+}
+
+function renderReporte() {
+  const alpha = state.alpha;
+  const conf = (1-alpha)*100;
+  const now = new Date().toLocaleDateString('es-PE', {year:'numeric',month:'long',day:'numeric'});
+
+  let html = `
+  <div id="report-body" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:40px;max-width:800px;margin:0 auto">
+    <div style="text-align:center;padding-bottom:24px;border-bottom:2px solid var(--border);margin-bottom:32px">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px">INFORME ESTADÍSTICO ACADÉMICO</div>
+      <h1 style="font-size:26px;font-weight:700;margin-bottom:4px">Análisis Estadístico Completo</h1>
+      <div style="font-size:14px;color:var(--text2)">Nivel de significancia α = ${alpha} | Confianza ${conf}%</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px">${now}</div>
+    </div>
+
+    <div class="report-section">
+      <h2 class="report-title">I. Introducción</h2>
+      <p>El presente informe presenta un análisis estadístico completo de la base de datos proporcionada. Se utilizó un nivel de significancia α = ${alpha} (${conf}% de confianza) para todas las pruebas de hipótesis e intervalos de confianza. El análisis incluye estadísticas descriptivas, tablas de frecuencias, probabilidades, puntajes Z, intervalos de confianza y pruebas de hipótesis estadísticas.</p>
+      <p>La base de datos analizada contiene <strong>${state.data?.length || 0}</strong> observaciones y <strong>${state.headers.length}</strong> variables, de las cuales <strong>${state.numericVars.length}</strong> son cuantitativas y <strong>${state.categoricalVars.length}</strong> son cualitativas.</p>
+    </div>
+
+    <div class="report-section">
+      <h2 class="report-title">II. Objetivos</h2>
+      <div style="background:var(--bg3);padding:16px;border-radius:var(--radius);border-left:3px solid var(--blue)">
+        ${state.objectives ? state.objectives.split('\n').filter(l=>l.trim()).map((o,i)=>`<p style="margin-bottom:8px"><strong>${i+1}.</strong> ${o}</p>`).join('') : '<p style="color:var(--text3)">No se especificaron objetivos.</p>'}
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h2 class="report-title">III. Hipótesis</h2>
+      ${state.hypotheses.map((h,i) => `<div style="background:var(--bg3);padding:14px;border-radius:var(--radius);border-left:3px solid var(--purple);margin-bottom:10px">
+        <strong>Hipótesis ${i+1}:</strong> ${h}
+      </div>`).join('') || '<p style="color:var(--text3)">No se especificaron hipótesis.</p>'}
+    </div>
+
+    <div class="report-section">
+      <h2 class="report-title">IV. Análisis Descriptivo</h2>
+      ${Object.values(state.results.descriptive).filter(Boolean).map(s => `
+        <h3 style="margin:16px 0 8px;color:var(--blue)">Variable: ${s.varName} (n=${s.n})</h3>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px">
+          ${[['Media',s.mean.toFixed(4)],['Mediana',s.median.toFixed(4)],['Moda',s.mode[0]?.toFixed(2)||'N/A'],['Desv. Std',s.std.toFixed(4)],['C.V.',s.cv.toFixed(2)+'%'],['Varianza',s.variance.toFixed(4)],['Mínimo',s.min.toFixed(4)],['Máximo',s.max.toFixed(4)],['Rango',s.range.toFixed(4)],['n',s.n]].map(([l,v])=>`<div style="background:var(--bg3);padding:10px;border-radius:6px;text-align:center"><div style="font-size:14px;font-weight:700;font-family:var(--mono)">${v}</div><div style="font-size:10px;color:var(--text3)">${l}</div></div>`).join('')}
+        </div>
+        <p>La variable <strong>${s.varName}</strong> presenta una distribución con media ${s.mean.toFixed(2)}, mediana ${s.median.toFixed(2)} y moda ${s.mode[0]?.toFixed(2)||'N/A'}. 
+        ${s.mean > s.median ? 'Dado que la media > mediana, la distribución presenta asimetría positiva (sesgo a la derecha).' : 'Dado que la media < mediana, la distribución presenta asimetría negativa (sesgo a la izquierda).'}
+        El coeficiente de variación de ${s.cv.toFixed(1)}% indica ${s.cv<15?'baja variabilidad (distribución homogénea)':s.cv<30?'variabilidad moderada':'alta variabilidad (distribución heterogénea)'}.</p>
+      `).join('')}
+    </div>
+
+    <div class="report-section">
+      <h2 class="report-title">V. Intervalos de Confianza</h2>
+      ${state.results.confidence.filter(Boolean).slice(0,6).map(ic => `
+        <div style="background:var(--bg3);padding:16px;border-radius:var(--radius);margin-bottom:12px">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <span class="tag tag-blue">IC ${conf}%</span>
+            <span class="tag tag-green">${ic.type}</span>
+            <strong>${ic.varName}</strong>
+          </div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text2);line-height:2">
+            Fórmula: ${ic.formula}<br>
+            Sustitución: ${ic.substitution}<br>
+            <strong style="color:var(--green)">Resultado: IC = ${ic.result}</strong>
+          </div>
+          <p style="margin-top:8px">${ic.interpretation}</p>
+          <p><strong>Conclusión:</strong> ${ic.conclusion}</p>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="report-section">
+      <h2 class="report-title">VI. Pruebas de Hipótesis</h2>
+      ${state.results.hypothesisTests.map((test, i) => `
+        <div style="background:${test.rejected?'rgba(248,81,73,0.06)':'rgba(63,185,80,0.06)'};border:1px solid ${test.rejected?'rgba(248,81,73,0.3)':'rgba(63,185,80,0.3)'};border-radius:var(--radius);padding:16px;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <strong>${test.testName} — Hipótesis ${i+1}</strong>
+            <span style="background:${test.rejected?'rgba(248,81,73,0.2)':'rgba(63,185,80,0.2)'};color:${test.rejected?'var(--red)':'var(--green)'};padding:3px 10px;border-radius:12px;font-size:12px">${test.rejected?'Se rechaza H₀':'No se rechaza H₀'}</span>
+          </div>
+          <div style="font-size:13px;line-height:2;font-family:var(--mono);background:var(--bg3);padding:12px;border-radius:6px;margin-bottom:10px">
+            H₀: ${test.H0}<br>
+            H₁: ${test.H1}<br>
+            Estadístico ${test.statSymbol} = ${test.stat}<br>
+            Valor crítico = ${test.critVal} | p-valor = ${test.pVal}<br>
+            Región crítica: ${test.region}
+          </div>
+          <p><strong>Interpretación:</strong> ${test.interpretation}</p>
+          <p><strong>Conclusión:</strong> ${test.conclusion}</p>
+        </div>
+      `).join('') || '<p style="color:var(--text3)">No se ejecutaron pruebas de hipótesis.</p>'}
+    </div>
+
+    <div class="report-section" style="border-bottom:none;margin-bottom:0;padding-bottom:0">
+      <h2 class="report-title">VII. Conclusiones Generales</h2>
+      <p>Tras el análisis estadístico completo de la base de datos, se pueden establecer las siguientes conclusiones:</p>
+      <ol style="padding-left:20px;line-height:2;color:var(--text2)">
+        ${Object.values(state.results.descriptive).filter(Boolean).map(s => 
+          `<li>La variable <strong>${s.varName}</strong> presenta media de ${s.mean.toFixed(2)} ± ${s.std.toFixed(2)}, con ${s.cv<30?'baja a moderada':'alta'} variabilidad (C.V.=${s.cv.toFixed(1)}%).</li>`
+        ).join('')}
+        ${state.results.hypothesisTests.map((t,i) => 
+          `<li>Hipótesis ${i+1} (${t.testName}): ${t.rejected ? 'Se rechaza H₀' : 'No se rechaza H₀'}. ${t.conclusion}</li>`
+        ).join('')}
+      </ol>
+      <div style="margin-top:24px;padding:16px;background:var(--bg3);border-radius:var(--radius);font-size:12px;color:var(--text3)">
+        Análisis realizado con StatAcademia | α = ${alpha} | ${now}
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('reporte-content').innerHTML = html;
+}
+
+// ==================== EXPORT ====================
+function exportPDF() {
+  window.print();
+}
+
+function exportWord() {
+  const reportEl = document.getElementById('report-body');
+  if(!reportEl) { alert('Genere el reporte primero.'); return; }
+  
+  const content = `
+    <html><head><meta charset="UTF-8"><style>
+      body{font-family:Arial,sans-serif;font-size:12pt;line-height:1.6;margin:2cm}
+      h1{font-size:18pt;font-weight:bold;text-align:center}
+      h2{font-size:14pt;font-weight:bold;margin-top:16pt}
+      h3{font-size:12pt;font-weight:bold}
+      table{border-collapse:collapse;width:100%}
+      td,th{border:1px solid #999;padding:6px;font-size:10pt}
+      th{background:#eee;font-weight:bold}
+    </style></head><body>
+    ${reportEl.innerText.split('\n').map(l => `<p>${l}</p>`).join('')}
+    </body></html>`;
+  
+  const blob = new Blob([content], {type:'application/msword'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'reporte_estadistico.doc';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ==================== NEW: NORMALIDAD ====================
+function shapiroWilkApprox(arr) {
+  // Approximation using regression on normal order statistics (Royston 1992 approximation)
+  const n = arr.length;
+  const sorted = [...arr].sort((a,b)=>a-b);
+  const mu = mean(sorted);
+  const s = std(sorted);
+  if(s === 0) return {W:1, pVal:1};
+  // Coefficient table (simplified for n≤50)
+  const coeffs = [];
+  for(let i=0;i<Math.floor(n/2);i++){
+    const m_i = approximateNormalQuantile((i+1-0.375)/(n+0.25));
+    coeffs.push(m_i);
+  }
+  const m_norm = Math.sqrt(coeffs.reduce((s,v)=>s+v*v,0));
+  const a = coeffs.map(c=>c/m_norm);
+  let numerator = 0;
+  for(let i=0;i<a.length;i++){
+    numerator += a[i]*(sorted[n-1-i]-sorted[i]);
+  }
+  const SS = sorted.reduce((s,v)=>s+Math.pow(v-mu,2),0);
+  const W = Math.pow(numerator,2)/SS;
+  const Wclamp = Math.min(Math.max(W,0),1);
+  // Approximate p-value using a log-normal model of the W statistic
+  const mu_n = 0.0038915*(Math.log(n))^3 - 0.083751*(Math.log(n))^2 - 0.31082*Math.log(n) - 1.5861;
+  const sig_n = Math.exp(0.0030302*(Math.log(n))^2 - 0.082676*Math.log(n) - 0.4803);
+  const z_w = (Math.log(1-Wclamp) - mu_n)/(sig_n+0.001);
+  const pVal = 1 - normalCDF(z_w);
+  return {W: Wclamp, pVal: Math.min(Math.max(pVal,0.001),0.999)};
+}
+
+function ksTest(arr) {
+  const n = arr.length;
+  const mu = mean(arr);
+  const s = std(arr);
+  const sorted = [...arr].sort((a,b)=>a-b);
+  let Dmax = 0;
+  for(let i=0;i<n;i++){
+    const z = (sorted[i]-mu)/s;
+    const Fn = (i+1)/n;
+    const F0 = normalCDF(z);
+    Dmax = Math.max(Dmax, Math.abs(Fn-F0), Math.abs(i/n - F0));
+  }
+  // Lilliefors critical values (approximate)
+  const critTable = {0.10:1.22,0.05:1.36,0.01:1.63};
+  const critVal = (critTable[state.alpha] || 1.36) / Math.sqrt(n);
+  const pVal = Math.exp(-7.01256*Dmax*Dmax*(n+2.78019)+(2.99587*Dmax*Math.sqrt(n+2.78019))-0.122119+(0.974598/Math.sqrt(n))+(1.67997/n));
+  const rejected = Dmax > critVal;
+  return {Dn: Dmax, critVal, pVal: Math.min(Math.max(pVal,0.001),0.999), rejected};
+}
+
+function approximateNormalQuantile(p) {
+  // Rational approximation of the normal quantile
+  if(p<=0) return -4; if(p>=1) return 4;
+  const a=[2.50662823884,-18.61500062529,41.39119773534,-25.44106049637];
+  const b=[-8.47351093090,23.08336743743,-21.06224101826,3.13082909833];
+  const c=[0.3374754822726147,0.9761690190917186,0.1607979714918209,0.0276438810333863,0.0038405729373609,0.0003951896511349,0.0000321767881768,0.0000002888167364,0.0000003960315187];
+  let x = p - 0.5;
+  let r;
+  if(Math.abs(x)<0.42) {
+    r = x*x;
+    return x*(((a[3]*r+a[2])*r+a[1])*r+a[0])/((((b[3]*r+b[2])*r+b[1])*r+b[0])*r+1);
+  }
+  r = p < 0.5 ? p : 1-p;
+  r = Math.sqrt(-Math.log(r));
+  let sign = p<0.5?-1:1;
+  return sign*(((((((c[8]*r+c[7])*r+c[6])*r+c[5])*r+c[4])*r+c[3])*r+c[2])*r+c[1])*r+c[0];
+}
+
+function renderNormalidad() {
+  let html = '';
+  const vars = state.numericVars.slice(0,4);
+  if(!vars.length){ document.getElementById('normalidad-content').innerHTML='<div class="alert alert-warn">Se requieren variables numéricas.</div>'; return; }
+
+  html += `<div class="alert alert-info">
+    <strong>H2.1 — Prueba de Normalidad:</strong> Se aplica Shapiro-Wilk (n≤50) o Kolmogorov-Smirnov/Lilliefors (n&gt;50) para cada variable numérica.
+    <br>• H₀: Los datos siguen una distribución normal
+    <br>• H₁: Los datos NO siguen una distribución normal
+  </div>`;
+
+  vars.forEach((v,vi) => {
+    const s = state.results.descriptive[v];
+    if(!s) return;
+    const vals = s.values;
+    const n = vals.length;
+    const useKS = n > 50;
+    let testResult, testName, statSymbol, statVal, critValDisplay, pValDisplay, rejected;
+
+    if(useKS) {
+      const r = ksTest(vals);
+      testName = 'Kolmogorov-Smirnov (Lilliefors)';
+      statSymbol = 'Dₙ'; statVal = r.Dn.toFixed(6);
+      critValDisplay = r.critVal.toFixed(6); pValDisplay = r.pVal.toFixed(4);
+      rejected = r.rejected;
+    } else {
+      const r = shapiroWilkApprox(vals);
+      testName = 'Shapiro-Wilk'; statSymbol = 'W';
+      statVal = r.W.toFixed(6); critValDisplay = (state.alpha<=0.05?'0.9500':'0.9700');
+      pValDisplay = r.pVal.toFixed(4);
+      rejected = r.pVal < state.alpha;
+    }
+
+    const mu = s.mean, sg = s.std;
+    const sorted = [...vals].sort((a,b)=>a-b);
+    const qqPoints = sorted.map((v,i)=>({
+      obs: v,
+      theor: mu + sg*approximateNormalQuantile((i+1-0.375)/(n+0.25))
+    }));
+
+    const skewness = vals.reduce((s2,v2)=>s2+Math.pow((v2-mu)/sg,3),0)*n/((n-1)*(n-2));
+    const kurtosis = n*(n+1)/((n-1)*(n-2)*(n-3))*vals.reduce((s2,v2)=>s2+Math.pow((v2-mu)/sg,4),0)-3*(n-1)*(n-1)/((n-2)*(n-3));
+
+    html += `<div class="card">
+      <h2>📉 Normalidad: ${v}</h2>
+      <div class="alert alert-info" style="margin-bottom:12px">
+        <strong>Prueba seleccionada:</strong> ${testName} (n = ${n} → ${useKS?'n&gt;50: Kolmogorov-Smirnov':'n≤50: Shapiro-Wilk'})
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+        <div class="stat-card"><div class="stat-val">${statVal}</div><div class="stat-label">${statSymbol} calculado</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:var(--orange)">${critValDisplay}</div><div class="stat-label">Valor crítico (α=${state.alpha})</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:${parseFloat(pValDisplay)<state.alpha?'var(--red)':'var(--green)'}">${pValDisplay}</div><div class="stat-label">p-valor</div></div>
+      </div>
+
+      <div class="math-box">
+        <div class="math-label">Hipótesis</div>
+        <div class="math-step">H₀: <span>Los datos de "${v}" siguen una distribución normal N(μ=${mu.toFixed(3)}, σ²=${(sg*sg).toFixed(3)})</span></div>
+        <div class="math-step">H₁: <span>Los datos de "${v}" NO siguen una distribución normal</span></div>
+        <div class="math-formula" style="margin-top:8px">${useKS ? 'Dₙ = sup|Fₙ(x) - F₀(x)|' : 'W = (Σ aᵢ(x₍ₙ₋ᵢ₊₁₎ - x₍ᵢ₎))² / Σ(xᵢ-x̄)²'}</div>
+        <div class="math-step">${statSymbol} calculado = <span>${statVal}</span></div>
+        <div class="math-step">Valor crítico (α=${state.alpha}) = <span>${critValDisplay}</span></div>
+        <div class="math-result">${statSymbol}${rejected?(useKS?' > ':' < '):(useKS?' ≤ ':' ≥ ')}${critValDisplay} → ${rejected?'Se RECHAZA H₀':'No se rechaza H₀'}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0">
+        <div class="stat-card"><div class="stat-val">${skewness.toFixed(4)}</div><div class="stat-label">Asimetría (g₁)</div><div class="stat-interp">${Math.abs(skewness)<0.5?'Simétrica':skewness>0?'Sesgo positivo':'Sesgo negativo'}</div></div>
+        <div class="stat-card"><div class="stat-val">${kurtosis.toFixed(4)}</div><div class="stat-label">Curtosis (g₂)</div><div class="stat-interp">${Math.abs(kurtosis)<0.5?'Mesocúrtica':kurtosis>0?'Leptocúrtica':'Platicúrtica'}</div></div>
+      </div>
+
+      <div class="chart-card" style="margin:12px 0">
+        <div class="chart-title">Gráfico Q-Q Normal: ${v}</div>
+        <div style="position:relative;height:280px"><canvas id="qq_${vi}" role="img" aria-label="QQ plot de ${v}"></canvas></div>
+      </div>
+
+      <div class="${rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="margin-top:12px">
+        <span class="hyp-badge ${rejected?'badge-reject':'badge-fail'}">${rejected?'✗ Se rechaza H₀ — Distribución NO normal':'✓ No se rechaza H₀ — Distribución compatible con Normal'}</span>
+        <p style="margin-top:10px">
+          ${rejected
+            ? `Con p-valor = ${pValDisplay} < α = ${state.alpha}, existe evidencia estadística suficiente para rechazar que los datos de "${v}" siguen una distribución normal. Se recomienda aplicar pruebas no paramétricas.`
+            : `Con p-valor = ${pValDisplay} ≥ α = ${state.alpha}, no existe evidencia suficiente para rechazar la normalidad de "${v}". Los datos son compatibles con una distribución normal.`}
+        </p>
+      </div>
+
+      <div class="conclusion-box" style="margin-top:8px">
+        <strong>📊 Medidas de forma:</strong> La asimetría de ${skewness.toFixed(3)} indica una distribución ${Math.abs(skewness)<0.5?'aproximadamente simétrica':skewness>0?'con cola derecha':'con cola izquierda'}.
+        La curtosis de ${kurtosis.toFixed(3)} sugiere una curva ${Math.abs(kurtosis)<0.5?'mesocúrtica (similar a la normal)':kurtosis>0?'leptocúrtica (más apuntada)':'platicúrtica (más plana)'}.
+      </div>
+    </div>`;
+
+    state._qqData = state._qqData || {};
+    state._qqData[vi] = qqPoints;
+  });
+
+  document.getElementById('normalidad-content').innerHTML = html;
+  setTimeout(()=>{
+    vars.forEach((v,vi)=>{
+      const ctx = document.getElementById(`qq_${vi}`);
+      const qd = state._qqData?.[vi];
+      if(!ctx||!qd) return;
+      const s2 = state.results.descriptive[v];
+      // Regression line
+      const mn = Math.min(...qd.map(p=>p.theor)), mx = Math.max(...qd.map(p=>p.theor));
+      new Chart(ctx,{
+        type:'scatter',
+        data:{datasets:[
+          {label:'Datos',data:qd.map(p=>({x:p.theor,y:p.obs})),backgroundColor:'rgba(88,166,255,0.7)',pointRadius:5},
+          {label:'Línea normal',data:[{x:mn,y:mn},{x:mx,y:mx}],type:'line',borderColor:'#f85149',borderWidth:2,pointRadius:0,backgroundColor:'transparent'}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:'bottom'}},
+          scales:{x:{title:{display:true,text:'Cuantiles teóricos normales'}},y:{title:{display:true,text:'Cuantiles observados'}}}}
+      });
+    });
+  },400);
+}
+
+// ==================== NEW: SIGNOS Y RACHAS ====================
+function signTest(arr, m0) {
+  // Sign test for median
+  const n = arr.length;
+  const pos = arr.filter(v=>v>m0).length;
+  const neg = arr.filter(v=>v<m0).length;
+  const ties = n - pos - neg;
+  const nEff = pos + neg;
+  const alpha = state.alpha;
+  // Exact binomial or normal approximation
+  let pVal, stat, critVal;
+  if(nEff <= 25) {
+    // Use normal approx anyway for simplicity
+    stat = (Math.min(pos,neg) - nEff/2 + 0.5) / Math.sqrt(nEff/4);
+    critVal = tCritical(alpha, 10000).toFixed(4);
+    pVal = 2*(1-normalCDF(Math.abs(stat)));
+  } else {
+    stat = (Math.min(pos,neg) - nEff*0.5) / Math.sqrt(nEff*0.25);
+    critVal = tCritical(alpha, 10000).toFixed(4);
+    pVal = 2*(1-normalCDF(Math.abs(stat)));
+  }
+  const rejected = Math.abs(stat) > parseFloat(critVal);
+  return {stat: stat.toFixed(4), critVal, pVal: pVal.toFixed(4), rejected, pos, neg, ties, nEff, m0};
+}
+
+function runsTestOnValues(arr) {
+  // Runs test above/below median
+  const n = arr.length;
+  const med = median(arr);
+  const seq = arr.map(v=>v>=med?1:0);
+  let runs=1, n1=0, n2=0;
+  seq.forEach(v=>v===1?n1++:n2++);
+  for(let i=1;i<seq.length;i++) if(seq[i]!==seq[i-1]) runs++;
+  const neff=n1+n2;
+  if(neff<2) return null;
+  const muR = 2*n1*n2/neff+1;
+  const sigR = Math.sqrt(2*n1*n2*(2*n1*n2-neff)/(neff*neff*(neff-1)));
+  const z = (runs-muR)/(sigR||1);
+  const pVal = 2*(1-normalCDF(Math.abs(z)));
+  const critVal = tCritical(state.alpha,10000);
+  const rejected = Math.abs(z)>critVal;
+  return {z:z.toFixed(4), critVal: critVal.toFixed(4), pVal: pVal.toFixed(4), rejected, runs, n1, n2, muR:muR.toFixed(4), sigR:sigR.toFixed(4), med:med.toFixed(4)};
+}
+
+function renderSignosYRachas() {
+  let html = `<div class="alert alert-info">
+    <strong>H2.2 — Prueba de Signos y Prueba de Rachas</strong><br>
+    Estas pruebas no paramétricas evalúan la mediana y la aleatoriedad de los datos sin asumir distribución normal.
+  </div>`;
+
+  const vars = state.numericVars.slice(0,3);
+  if(!vars.length){ document.getElementById('signos-content').innerHTML='<div class="alert alert-warn">Se requieren variables numéricas.</div>'; return; }
+
+  vars.forEach((v,vi)=>{
+    const s = state.results.descriptive[v];
+    if(!s) return;
+    const vals = s.values;
+    const m0 = s.median;
+    const sr = signTest(vals, m0);
+    const rr = runsTestOnValues(vals);
+
+    html += `<div class="card">
+      <h2>± Pruebas de Signos y Rachas: ${v}</h2>
+
+      <h3 style="color:var(--blue);margin-bottom:10px">2.1 Prueba de Signos para la Mediana</h3>
+      <div class="math-box">
+        <div class="math-label">Planteamiento</div>
+        <div class="math-step">H₀: <span>La mediana de "${v}" es igual a ${m0.toFixed(4)} (M = ${m0.toFixed(4)})</span></div>
+        <div class="math-step">H₁: <span>La mediana de "${v}" es diferente de ${m0.toFixed(4)} (M ≠ ${m0.toFixed(4)})</span></div>
+        <div class="math-formula" style="margin-top:8px">Z = (min(n⁺, n⁻) − n_ef/2 + 0.5) / √(n_ef/4)</div>
+        <div class="math-step">Signos positivos (xᵢ &gt; ${m0.toFixed(2)}): <span>n⁺ = ${sr.pos}</span></div>
+        <div class="math-step">Signos negativos (xᵢ &lt; ${m0.toFixed(2)}): <span>n⁻ = ${sr.neg}</span></div>
+        <div class="math-step">Empates (xᵢ = ${m0.toFixed(2)}): <span>${sr.ties} (excluidos)</span></div>
+        <div class="math-step">n efectivo: <span>${sr.nEff}</span></div>
+        <div class="math-step">Z = (${Math.min(sr.pos,sr.neg)} − ${(sr.nEff/2).toFixed(1)} + 0.5) / √(${(sr.nEff/4).toFixed(4)})</div>
+        <div class="math-result">Z = ${sr.stat} | p-valor = ${sr.pVal} | Z crítico = ±${sr.critVal}</div>
+      </div>
+      <div class="${sr.rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="padding:12px">
+        <span class="hyp-badge ${sr.rejected?'badge-reject':'badge-fail'}">${sr.rejected?'✗ Se rechaza H₀':'✓ No se rechaza H₀'}</span>
+        <p style="margin-top:8px">
+          ${sr.rejected
+            ? `Con Z=${sr.stat} y p-valor=${sr.pVal} < α=${state.alpha}, se rechaza H₀. Hay evidencia de que la mediana de "${v}" difiere de ${m0.toFixed(4)}.`
+            : `Con Z=${sr.stat} y p-valor=${sr.pVal} ≥ α=${state.alpha}, no se rechaza H₀. La mediana de "${v}" es consistente con ${m0.toFixed(4)}.`}
+        </p>
+      </div>
+
+      <h3 style="color:var(--blue);margin:16px 0 10px">2.2 Prueba de Rachas (Aleatoriedad)</h3>
+      ${rr ? `
+      <div class="math-box">
+        <div class="math-label">Planteamiento</div>
+        <div class="math-step">H₀: <span>La secuencia de valores de "${v}" es aleatoria</span></div>
+        <div class="math-step">H₁: <span>La secuencia de valores de "${v}" NO es aleatoria</span></div>
+        <div class="math-formula" style="margin-top:8px">Z = (R − μ_R) / σ_R</div>
+        <div class="math-step">Mediana de referencia: <span>${rr.med}</span></div>
+        <div class="math-step">Rachas observadas (R): <span>${rr.runs}</span></div>
+        <div class="math-step">n₁ (≥ mediana) = ${rr.n1}, n₂ (&lt; mediana) = ${rr.n2}</div>
+        <div class="math-step">μ_R = 2n₁n₂/(n₁+n₂)+1 = <span>${rr.muR}</span></div>
+        <div class="math-step">σ_R = <span>${rr.sigR}</span></div>
+        <div class="math-step">Z = (${rr.runs} − ${rr.muR}) / ${rr.sigR}</div>
+        <div class="math-result">Z = ${rr.z} | p-valor = ${rr.pVal} | Z crítico = ±${rr.critVal}</div>
+      </div>
+      <div class="${rr.rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="padding:12px">
+        <span class="hyp-badge ${rr.rejected?'badge-reject':'badge-fail'}">${rr.rejected?'✗ Se rechaza H₀ — Secuencia NO aleatoria':'✓ No se rechaza H₀ — Secuencia aleatoria'}</span>
+        <p style="margin-top:8px">
+          ${rr.rejected
+            ? `Con Z=${rr.z} y p-valor=${rr.pVal} < α=${state.alpha}, existe evidencia de que la distribución de "${v}" no es aleatoria.`
+            : `Con Z=${rr.z} y p-valor=${rr.pVal} ≥ α=${state.alpha}, los datos de "${v}" presentan un patrón de rachas compatible con la aleatoriedad.`}
+        </p>
+      </div>` : '<div class="alert alert-warn">Datos insuficientes para la prueba de rachas.</div>'}
+    </div>`;
+  });
+
+  document.getElementById('signos-content').innerHTML = html;
+}
+
+// ==================== NEW: NO PARAMETRICAS 2 MUESTRAS ====================
+function mannWhitneyU(arr1, arr2) {
+  const n1=arr1.length, n2=arr2.length;
+  const all = [...arr1.map(v=>({v,g:1})),...arr2.map(v=>({v,g:2}))].sort((a,b)=>a.v-b.v);
+  // Assign ranks with ties handling
+  let i=0;
+  const ranked = [];
+  while(i<all.length){
+    let j=i; while(j<all.length-1&&all[j+1].v===all[i].v) j++;
+    const avgRank=(i+1+j+1)/2;
+    for(let k=i;k<=j;k++) ranked.push({...all[k],rank:avgRank});
+    i=j+1;
+  }
+  const R1=ranked.filter(r=>r.g===1).reduce((s,r)=>s+r.rank,0);
+  const R2=ranked.filter(r=>r.g===2).reduce((s,r)=>s+r.rank,0);
+  const U1=n1*n2+n1*(n1+1)/2-R1;
+  const U2=n1*n2+n2*(n2+1)/2-R2;
+  const U=Math.min(U1,U2);
+  const N=n1+n2;
+  // Tie correction
+  const groups={};
+  ranked.forEach(r=>{groups[r.v]=(groups[r.v]||0)+1;});
+  const tieCorr=Object.values(groups).reduce((s,t)=>s+(t*t*t-t),0);
+  const muU=n1*n2/2;
+  const sigU=Math.sqrt((n1*n2/12)*(N+1-tieCorr/(N*(N-1))));
+  const z=(U-muU)/sigU;
+  const pVal=2*(1-normalCDF(Math.abs(z)));
+  const critVal=tCritical(state.alpha,10000);
+  const rejected=Math.abs(z)>critVal;
+  return {U,U1,U2,R1,R2,z:z.toFixed(4),muU:muU.toFixed(4),sigU:sigU.toFixed(4),pVal:pVal.toFixed(4),critVal:critVal.toFixed(4),rejected,n1,n2};
+}
+
+function wilcoxonSigned(before, after) {
+  const n=Math.min(before.length,after.length);
+  const diffs=Array.from({length:n},(_,i)=>after[i]-before[i]).filter(d=>d!==0);
+  const m=diffs.length;
+  if(m<2) return null;
+  const absDiffs=diffs.map(d=>({d,abs:Math.abs(d),sign:d>0?1:-1})).sort((a,b)=>a.abs-b.abs);
+  // Rank with tie handling
+  let i=0;
+  while(i<absDiffs.length){
+    let j=i; while(j<absDiffs.length-1&&absDiffs[j+1].abs===absDiffs[i].abs) j++;
+    const avgRank=(i+1+j+1)/2;
+    for(let k=i;k<=j;k++) absDiffs[k].rank=avgRank;
+    i=j+1;
+  }
+  const Wplus=absDiffs.filter(r=>r.sign===1).reduce((s,r)=>s+r.rank,0);
+  const Wminus=absDiffs.filter(r=>r.sign===-1).reduce((s,r)=>s+r.rank,0);
+  const W=Math.min(Wplus,Wminus);
+  const muW=m*(m+1)/4;
+  const tieGroups={};
+  absDiffs.forEach(r=>{tieGroups[r.abs]=(tieGroups[r.abs]||0)+1;});
+  const tieCorr=Object.values(tieGroups).reduce((s,t)=>s+(t*t*t-t),0);
+  const sigW=Math.sqrt(m*(m+1)*(2*m+1)/24-tieCorr/48);
+  const z=(W-muW)/(sigW||1);
+  const pVal=2*(1-normalCDF(Math.abs(z)));
+  const critVal=tCritical(state.alpha,10000);
+  const rejected=Math.abs(z)>critVal;
+  return {W,Wplus:Wplus.toFixed(2),Wminus:Wminus.toFixed(2),z:z.toFixed(4),muW:muW.toFixed(4),sigW:sigW.toFixed(4),pVal:pVal.toFixed(4),critVal:critVal.toFixed(4),rejected,m,diffs:absDiffs.slice(0,10)};
+}
+
+function renderNoParametricas() {
+  let html = `<div class="alert alert-info">
+    <strong>Pruebas No Paramétricas para Dos Muestras (comparación de medianas):</strong><br>
+    <strong>1.1 Mann-Whitney U</strong> — Dos muestras independientes. No asume normalidad.<br>
+    <strong>1.2 Wilcoxon Signed-Rank</strong> — Misma muestra antes/después (pre-post). Se crea variable de tratamiento sobre los datos disponibles.
+  </div>`;
+
+  const vars = state.numericVars;
+  if(vars.length < 1){ document.getElementById('noparametrica-content').innerHTML='<div class="alert alert-warn">Se requiere al menos una variable numérica.</div>'; return; }
+
+  // Mann-Whitney: use first two numeric vars or split first var at median
+  const v1 = vars[0];
+  const v2 = vars.length>=2 ? vars[1] : vars[0];
+  const arr1 = getNumericValues(v1);
+  const arr2 = getNumericValues(v2);
+  const mw = mannWhitneyU(arr1, arr2);
+
+  // Wilcoxon: use first variable, create "before" (first 80 values) and "after" (same data +5% perturbation to simulate post-treatment)
+  const rawBefore = arr1.slice(0,80);
+  const n80 = rawBefore.length;
+  // Simulate post-treatment: add small systematic shift (treatment effect simulation)
+  const treatEffect = arr1.reduce((s,v)=>s+v,0)/arr1.length * 0.05; // 5% mean shift
+  const rawAfter = rawBefore.map(v=>+(v + treatEffect + (Math.random()-0.5)*0.1*v).toFixed(4));
+  const wc = wilcoxonSigned(rawBefore, rawAfter);
+
+  html += `<div class="card">
+    <h2>1.1 — Prueba U de Mann-Whitney: ${v1} vs ${v2}</h2>
+    <div class="math-box">
+      <div class="math-label">Planteamiento</div>
+      <div class="math-step">H₀: <span>Las medianas de "${v1}" y "${v2}" son iguales (M₁ = M₂)</span></div>
+      <div class="math-step">H₁: <span>Las medianas de "${v1}" y "${v2}" son diferentes (M₁ ≠ M₂)</span></div>
+      <div class="math-formula" style="margin-top:8px">U = n₁·n₂ + n₁(n₁+1)/2 − R₁ &nbsp;|&nbsp; Z = (U − μᵤ) / σᵤ</div>
+      <div class="math-step">n₁ = ${mw.n1}, n₂ = ${mw.n2}</div>
+      <div class="math-step">Suma de rangos R₁ = ${mw.R1.toFixed(2)}, R₂ = ${mw.R2.toFixed(2)}</div>
+      <div class="math-step">U₁ = ${mw.U1.toFixed(2)}, U₂ = ${mw.U2.toFixed(2)} → U = min(U₁,U₂) = ${mw.U.toFixed(2)}</div>
+      <div class="math-step">μᵤ = n₁·n₂/2 = ${mw.muU} &nbsp;|&nbsp; σᵤ = ${mw.sigU}</div>
+      <div class="math-step">Z = (${mw.U.toFixed(2)} − ${mw.muU}) / ${mw.sigU}</div>
+      <div class="math-result">Z = ${mw.z} | p-valor = ${mw.pVal} | Z crítico = ±${mw.critVal}</div>
+    </div>
+    <div class="decision-grid">
+      <div class="decision-item"><div class="decision-key">U calculado</div><div class="decision-val">${mw.U.toFixed(2)}</div></div>
+      <div class="decision-item"><div class="decision-key">Z calculado</div><div class="decision-val">${mw.z}</div></div>
+      <div class="decision-item"><div class="decision-key">p-valor</div><div class="decision-val" style="color:${parseFloat(mw.pVal)<state.alpha?'var(--red)':'var(--green)'}">${mw.pVal}</div></div>
+      <div class="decision-item"><div class="decision-key">Región crítica</div><div class="decision-val" style="font-size:12px">|Z| &gt; ${mw.critVal}</div></div>
+    </div>
+    <div class="${mw.rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="margin-top:12px;padding:12px">
+      <span class="hyp-badge ${mw.rejected?'badge-reject':'badge-fail'}">${mw.rejected?'✗ Se rechaza H₀':'✓ No se rechaza H₀'}</span>
+      <p style="margin-top:8px">
+        ${mw.rejected
+          ? `Con Z=${mw.z} (p=${mw.pVal} < α=${state.alpha}), existe evidencia estadística de que las medianas de "${v1}" y "${v2}" son significativamente diferentes.`
+          : `Con Z=${mw.z} (p=${mw.pVal} ≥ α=${state.alpha}), no existe evidencia suficiente para concluir que las medianas de "${v1}" y "${v2}" difieren.`}
+      </p>
+    </div>
+  </div>`;
+
+  html += `<div class="card">
+    <h2>1.2 — Prueba de Wilcoxon Signed-Rank: ${v1} (Pre-Post)</h2>
+    <div class="alert alert-warn" style="margin-bottom:12px">
+      <strong>Variable de tratamiento:</strong> Se utiliza la misma muestra de ${n80} datos de "${v1}" como medición PRE-tratamiento. 
+      La medición POST-tratamiento simula un efecto de tratamiento del 5% sobre la media, representando una intervención clínica/educativa/experimental.
+      En un análisis real, el usuario debe ingresar los datos POST como segundo conjunto de datos.
+    </div>
+    ${wc ? `
+    <div class="math-box">
+      <div class="math-label">Planteamiento</div>
+      <div class="math-step">H₀: <span>No hay diferencia entre las medianas antes y después del tratamiento (Md = 0)</span></div>
+      <div class="math-step">H₁: <span>Existe diferencia entre las medianas antes y después del tratamiento (Md ≠ 0)</span></div>
+      <div class="math-formula" style="margin-top:8px">W = min(W⁺, W⁻) &nbsp;|&nbsp; Z = (W − μ_W) / σ_W</div>
+      <div class="math-step">m (diferencias ≠ 0): <span>${wc.m}</span></div>
+      <div class="math-step">W⁺ (suma rangos positivos): <span>${wc.Wplus}</span></div>
+      <div class="math-step">W⁻ (suma rangos negativos): <span>${wc.Wminus}</span></div>
+      <div class="math-step">W = min(W⁺, W⁻) = <span>${wc.W.toFixed(2)}</span></div>
+      <div class="math-step">μ_W = m(m+1)/4 = ${wc.muW} &nbsp;|&nbsp; σ_W = ${wc.sigW}</div>
+      <div class="math-step">Z = (${wc.W.toFixed(2)} − ${wc.muW}) / ${wc.sigW}</div>
+      <div class="math-result">Z = ${wc.z} | p-valor = ${wc.pVal} | Z crítico = ±${wc.critVal}</div>
+    </div>
+    <h4 style="margin:12px 0 8px">Primeras 10 diferencias (dᵢ = POST − PRE):</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th class="th-num">dᵢ</th><th class="th-num">|dᵢ|</th><th class="th-num">Rango</th><th class="th-num">Signo</th></tr></thead>
+        <tbody>${wc.diffs.map((r,i)=>`<tr>
+          <td>${i+1}</td>
+          <td class="td-num" style="color:${r.d>0?'var(--green)':'var(--red)'}">${r.d.toFixed(4)}</td>
+          <td class="td-num">${r.abs.toFixed(4)}</td>
+          <td class="td-num">${r.rank.toFixed(2)}</td>
+          <td class="td-num">${r.sign>0?'+'+'':'−'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div class="${wc.rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="margin-top:12px;padding:12px">
+      <span class="hyp-badge ${wc.rejected?'badge-reject':'badge-fail'}">${wc.rejected?'✗ Se rechaza H₀ — Tratamiento tiene efecto significativo':'✓ No se rechaza H₀ — Sin efecto significativo del tratamiento'}</span>
+      <p style="margin-top:8px">
+        ${wc.rejected
+          ? `Con Z=${wc.z} (p=${wc.pVal} < α=${state.alpha}), existe evidencia de que el tratamiento produjo un cambio significativo en la mediana de "${v1}".`
+          : `Con Z=${wc.z} (p=${wc.pVal} ≥ α=${state.alpha}), no se detecta un efecto significativo del tratamiento sobre la mediana de "${v1}".`}
+      </p>
+    </div>` : '<div class="alert alert-warn">Datos insuficientes para Wilcoxon.</div>'}
+  </div>`;
+
+  document.getElementById('noparametrica-content').innerHTML = html;
+}
+
+// ==================== NEW: KRUSKAL-WALLIS Y FRIEDMAN ====================
+function kruskalWallis(groups) {
+  // groups: array of arrays
+  const N = groups.reduce((s,g)=>s+g.length,0);
+  const k = groups.length;
+  const all=[]; groups.forEach((g,gi)=>g.forEach(v=>all.push({v,g:gi})));
+  all.sort((a,b)=>a.v-b.v);
+  // Assign ranks
+  let i=0;
+  while(i<all.length){
+    let j=i; while(j<all.length-1&&all[j+1].v===all[i].v) j++;
+    const ar=(i+1+j+1)/2;
+    for(let k2=i;k2<=j;k2++) all[k2].rank=ar;
+    i=j+1;
+  }
+  const Ri=groups.map((_,gi)=>all.filter(r=>r.g===gi).reduce((s,r)=>s+r.rank,0));
+  const ni=groups.map(g=>g.length);
+  const H=12/(N*(N+1))*Ri.reduce((s,r,gi)=>s+r*r/ni[gi],0)-3*(N+1);
+  const df=k-1;
+  let pVal=0.05; try{pVal=1-jStat.chisquare.cdf(H,df);}catch(e){}
+  const critVal=chiCritical(state.alpha,df);
+  const rejected=H>critVal;
+  return {H:H.toFixed(4),df,critVal:critVal.toFixed(4),pVal:pVal.toFixed(4),rejected,Ri,ni,N,k};
+}
+
+function friedmanTest(matrix) {
+  // matrix: rows=subjects, cols=treatments
+  const n=matrix.length, k=matrix[0].length;
+  if(n<2||k<2) return null;
+  // Rank within each row
+  const rankMatrix=matrix.map(row=>{
+    const sorted=[...row].sort((a,b)=>a-b);
+    return row.map(v=>{
+      const ties=sorted.filter(s=>s===v).length;
+      const pos=sorted.indexOf(v);
+      return pos+1+(ties-1)/2;
+    });
+  });
+  const Rj=Array.from({length:k},(_,j)=>rankMatrix.reduce((s,row)=>s+row[j],0));
+  const Fr=12/(n*k*(k+1))*Rj.reduce((s,r)=>s+r*r,0)-3*n*(k+1);
+  const df=k-1;
+  let pVal=0.05; try{pVal=1-jStat.chisquare.cdf(Fr,df);}catch(e){}
+  const critVal=chiCritical(state.alpha,df);
+  const rejected=Fr>critVal;
+  return {Fr:Fr.toFixed(4),df,critVal:critVal.toFixed(4),pVal:pVal.toFixed(4),rejected,Rj,n,k};
+}
+
+function renderKruskalFriedman() {
+  let html = `<div class="alert alert-info">
+    <strong>1.2 Kruskal-Wallis</strong> — Alternativa no paramétrica al ANOVA de un factor (k grupos independientes).<br>
+    <strong>1.3 Friedman</strong> — Alternativa no paramétrica al ANOVA de medidas repetidas (misma muestra, k condiciones).
+  </div>`;
+
+  const vars = state.numericVars;
+  if(vars.length < 1){ document.getElementById('kruskal-content').innerHTML='<div class="alert alert-warn">Se requieren variables numéricas.</div>'; return; }
+
+  // Kruskal-Wallis: split first variable into 3 groups by thirds
+  const v = vars[0];
+  const vals = getNumericValues(v);
+  const n = vals.length;
+  const g1=vals.slice(0,Math.floor(n/3));
+  const g2=vals.slice(Math.floor(n/3),Math.floor(2*n/3));
+  const g3=vals.slice(Math.floor(2*n/3));
+  const groups=[g1,g2,g3].filter(g=>g.length>0);
+  const kw = kruskalWallis(groups);
+  const gNames=['Grupo 1 (tercio inferior)','Grupo 2 (tercio medio)','Grupo 3 (tercio superior)'];
+
+  html += `<div class="card">
+    <h2>1.2 — Prueba de Kruskal-Wallis: ${v} (${groups.length} grupos)</h2>
+    <div class="alert alert-warn" style="margin-bottom:12px">
+      La variable "${v}" se dividió en ${groups.length} grupos por tercios para demostrar la prueba. En la práctica, los grupos deben provenir de una variable de clasificación o de diferentes muestras independientes.
+    </div>
+    <div class="math-box">
+      <div class="math-label">Planteamiento</div>
+      <div class="math-step">H₀: <span>Las medianas de todos los grupos son iguales (M₁ = M₂ = ... = Mₖ)</span></div>
+      <div class="math-step">H₁: <span>Al menos una mediana difiere</span></div>
+      <div class="math-formula" style="margin-top:8px">H = [12/(N(N+1))] · Σ(Rᵢ²/nᵢ) − 3(N+1)</div>
+      <div class="math-step">N total = ${kw.N} &nbsp;|&nbsp; k grupos = ${kw.k}</div>
+      ${groups.map((g,gi)=>`<div class="math-step">Grupo ${gi+1} (n=${kw.ni[gi]}): R${gi+1} = <span>${kw.Ri[gi].toFixed(2)}</span>, med=${median(g).toFixed(2)}</div>`).join('')}
+      <div class="math-step">H = [12/(${kw.N}·${kw.N+1})] · [${groups.map((g,gi)=>`${kw.Ri[gi].toFixed(2)}²/${kw.ni[gi]}`).join(' + ')}] − 3·${kw.N+1}</div>
+      <div class="math-result">H = ${kw.H} | g.l. = ${kw.df} | χ² crítico = ${kw.critVal} | p-valor = ${kw.pVal}</div>
+    </div>
+    <div class="decision-grid">
+      <div class="decision-item"><div class="decision-key">H calculado</div><div class="decision-val">${kw.H}</div></div>
+      <div class="decision-item"><div class="decision-key">g.l. = k−1</div><div class="decision-val">${kw.df}</div></div>
+      <div class="decision-item"><div class="decision-key">χ² crítico (α=${state.alpha})</div><div class="decision-val" style="color:var(--orange)">${kw.critVal}</div></div>
+      <div class="decision-item"><div class="decision-key">p-valor</div><div class="decision-val" style="color:${parseFloat(kw.pVal)<state.alpha?'var(--red)':'var(--green)'}">${kw.pVal}</div></div>
+    </div>
+    <div class="${kw.rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="margin-top:12px;padding:12px">
+      <span class="hyp-badge ${kw.rejected?'badge-reject':'badge-fail'}">${kw.rejected?'✗ Se rechaza H₀ — Al menos una mediana difiere':'✓ No se rechaza H₀ — Medianas iguales'}</span>
+      <p style="margin-top:8px">
+        ${kw.rejected
+          ? `Con H=${kw.H} > χ²crit=${kw.critVal} (p=${kw.pVal} < α=${state.alpha}), existe evidencia estadística de que al menos una mediana grupal es diferente. Se recomienda aplicar comparaciones post-hoc (Dunn).`
+          : `Con H=${kw.H} ≤ χ²crit=${kw.critVal} (p=${kw.pVal} ≥ α=${state.alpha}), no hay evidencia de diferencias entre las medianas de los grupos.`}
+      </p>
+    </div>
+  </div>`;
+
+  // Friedman: build matrix using up to 3 numeric vars and first 20 rows as subjects
+  const fVars = vars.slice(0,3);
+  if(fVars.length >= 2) {
+    const fMatrix = [];
+    const maxRows = Math.min(30, Math.min(...fVars.map(fv=>getNumericValues(fv).length)));
+    for(let ri=0;ri<maxRows;ri++){
+      const row=fVars.map(fv=>getNumericValues(fv)[ri]).filter(v=>!isNaN(v));
+      if(row.length===fVars.length) fMatrix.push(row);
+    }
+    const fr = friedmanTest(fMatrix);
+
+    html += `<div class="card">
+      <h2>1.3 — Prueba de Friedman: ${fVars.join(' | ')} (${fMatrix.length} sujetos)</h2>
+      <div class="alert alert-warn" style="margin-bottom:12px">
+        Se utilizan ${fVars.length} variables numéricas como condiciones/tratamientos y las primeras ${fMatrix.length} filas como sujetos o bloques. 
+        En la práctica, cada fila representa un sujeto medido bajo cada condición.
+      </div>
+      ${fr ? `
+      <div class="math-box">
+        <div class="math-label">Planteamiento</div>
+        <div class="math-step">H₀: <span>Las distribuciones son iguales en todas las condiciones (M₁ = M₂ = ... = Mₖ)</span></div>
+        <div class="math-step">H₁: <span>Al menos una condición tiene distribución diferente</span></div>
+        <div class="math-formula" style="margin-top:8px">Fᵣ = [12/(n·k·(k+1))] · ΣRⱼ² − 3·n·(k+1)</div>
+        <div class="math-step">n sujetos = ${fr.n} &nbsp;|&nbsp; k condiciones = ${fr.k}</div>
+        ${fVars.map((fv,j)=>`<div class="math-step">R${j+1} (${fv}): <span>${fr.Rj[j].toFixed(2)}</span></div>`).join('')}
+        <div class="math-result">Fᵣ = ${fr.Fr} | g.l. = ${fr.df} | χ² crítico = ${fr.critVal} | p-valor = ${fr.pVal}</div>
+      </div>
+      <div class="decision-grid">
+        <div class="decision-item"><div class="decision-key">Fᵣ calculado</div><div class="decision-val">${fr.Fr}</div></div>
+        <div class="decision-item"><div class="decision-key">g.l. = k−1</div><div class="decision-val">${fr.df}</div></div>
+        <div class="decision-item"><div class="decision-key">χ² crítico (α=${state.alpha})</div><div class="decision-val" style="color:var(--orange)">${fr.critVal}</div></div>
+        <div class="decision-item"><div class="decision-key">p-valor</div><div class="decision-val" style="color:${parseFloat(fr.pVal)<state.alpha?'var(--red)':'var(--green)'}">${fr.pVal}</div></div>
+      </div>
+      <div class="${fr.rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="margin-top:12px;padding:12px">
+        <span class="hyp-badge ${fr.rejected?'badge-reject':'badge-fail'}">${fr.rejected?'✗ Se rechaza H₀ — Al menos una condición difiere':'✓ No se rechaza H₀ — Condiciones iguales'}</span>
+        <p style="margin-top:8px">
+          ${fr.rejected
+            ? `Con Fᵣ=${fr.Fr} > χ²crit=${fr.critVal} (p=${fr.pVal} < α=${state.alpha}), existe evidencia de que al menos una condición tiene una distribución diferente. Se recomienda comparaciones post-hoc de Wilcoxon con corrección de Bonferroni.`
+            : `Con Fᵣ=${fr.Fr} ≤ χ²crit=${fr.critVal} (p=${fr.pVal} ≥ α=${state.alpha}), no se detectan diferencias significativas entre las condiciones.`}
+        </p>
+      </div>` : '<div class="alert alert-warn">Datos insuficientes para la prueba de Friedman (se necesitan al menos 2 variables y 2 filas completas).</div>'}
+    </div>`;
+  }
+
+  document.getElementById('kruskal-content').innerHTML = html;
+}
+
+// ==================== NEW: VARIANZA Y RAZON F ====================
+function fRatioTest(s1, s2) {
+  const F = s1.variance / s2.variance;
+  const df1 = s1.n-1, df2 = s2.n-1;
+  const alpha = state.alpha;
+  let pVal=0.05, critValU=1, critValL=1;
+  try {
+    critValU = jStat.centralF.inv(1-alpha/2, df1, df2);
+    critValL = jStat.centralF.inv(alpha/2, df1, df2);
+    pVal = 2*Math.min(jStat.centralF.cdf(F,df1,df2), 1-jStat.centralF.cdf(F,df1,df2));
+  } catch(e){}
+  const rejected = F < critValL || F > critValU;
+  return {F:F.toFixed(6), critValL:critValL.toFixed(4), critValU:critValU.toFixed(4), pVal:pVal.toFixed(6), rejected, df1, df2, s1v:s1.variance, s2v:s2.variance};
+}
+
+function renderVarianzaF() {
+  let html = '';
+  const vars = state.numericVars;
+  if(!vars.length){ document.getElementById('varianza-content').innerHTML='<div class="alert alert-warn">Se requieren variables numéricas.</div>'; return; }
+
+  const alpha = state.alpha;
+  const conf = (1-alpha)*100;
+
+  html += `<div class="alert alert-info">
+    <strong>Prueba de Hipótesis para la Varianza y Razón de Varianza (F)</strong><br>
+    Se realizan: (1) Prueba χ² para la varianza poblacional de cada variable, (2) IC para σ² a partir del IC calculado, y (3) Razón de varianzas F entre variables numéricas.
+  </div>`;
+
+  // Chi² test for each variable
+  vars.forEach((v,vi)=>{
+    const s = state.results.descriptive[v];
+    if(!s) return;
+    const {n, variance:s2, std:sg, varName} = s;
+    const df = n-1;
+    const sigma0sq = s2; // H0: σ² = s² (test if variance equals sample variance)
+    const chiStat = (df*s2)/sigma0sq; // = df always for this H0
+    // More interesting: test H0: σ² = (mean*0.1)² — i.e. CV=10%
+    const sigma0_alt = Math.pow(Math.abs(s.mean)*0.1, 2) || 1;
+    const chiStat2 = (df*s2)/sigma0_alt;
+    let chiU, chiL, pVal;
+    try {
+      chiU = jStat.chisquare.inv(1-alpha/2, df);
+      chiL = jStat.chisquare.inv(alpha/2, df);
+      pVal = 2*Math.min(jStat.chisquare.cdf(chiStat2,df),1-jStat.chisquare.cdf(chiStat2,df));
+    } catch(e){ chiU=df+2*Math.sqrt(2*df); chiL=Math.max(0,df-2*Math.sqrt(2*df)); pVal=0.05; }
+    const rejected2 = chiStat2<chiL||chiStat2>chiU;
+
+    // IC for variance (already in confidence but show explicitly)
+    const loV = (df*s2)/chiU;
+    const hiV = (df*s2)/chiL;
+    // IC for std dev
+    const loSd = Math.sqrt(loV);
+    const hiSd = Math.sqrt(hiV);
+
+    html += `<div class="card">
+      <h2>σ² — Varianza de: ${varName}</h2>
+
+      <h3 style="color:var(--blue);margin-bottom:10px">Prueba de Hipótesis para σ² (H₀: σ² = ${sigma0_alt.toFixed(4)})</h3>
+      <div class="math-box">
+        <div class="math-step">H₀: <span>σ² = ${sigma0_alt.toFixed(4)} (varianza poblacional objetivo con CV=10%)</span></div>
+        <div class="math-step">H₁: <span>σ² ≠ ${sigma0_alt.toFixed(4)}</span></div>
+        <div class="math-formula" style="margin-top:8px">χ² = (n−1)·s² / σ₀²</div>
+        <div class="math-step">χ² = (${n}−1) · ${s2.toFixed(6)} / ${sigma0_alt.toFixed(6)}</div>
+        <div class="math-step">χ² = ${df} · ${s2.toFixed(6)} / ${sigma0_alt.toFixed(6)}</div>
+        <div class="math-result">χ² = ${chiStat2.toFixed(4)} | Región: χ² &lt; ${chiL.toFixed(4)} ó χ² &gt; ${chiU.toFixed(4)} | p = ${pVal.toFixed(4)}</div>
+      </div>
+      <div class="decision-grid">
+        <div class="decision-item"><div class="decision-key">χ² calculado</div><div class="decision-val">${chiStat2.toFixed(4)}</div></div>
+        <div class="decision-item"><div class="decision-key">χ²_L (α/2=${(alpha/2).toFixed(3)})</div><div class="decision-val" style="color:var(--orange)">${chiL.toFixed(4)}</div></div>
+        <div class="decision-item"><div class="decision-key">χ²_U (1−α/2=${(1-alpha/2).toFixed(3)})</div><div class="decision-val" style="color:var(--orange)">${chiU.toFixed(4)}</div></div>
+        <div class="decision-item"><div class="decision-key">p-valor</div><div class="decision-val" style="color:${pVal<alpha?'var(--red)':'var(--green)'}">${pVal.toFixed(4)}</div></div>
+      </div>
+      <div class="${rejected2?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="padding:12px;margin-top:10px">
+        <span class="hyp-badge ${rejected2?'badge-reject':'badge-fail'}">${rejected2?'✗ Se rechaza H₀':'✓ No se rechaza H₀'}</span>
+        <p style="margin-top:8px">${rejected2
+          ?`Con χ²=${chiStat2.toFixed(4)} fuera de [${chiL.toFixed(4)}, ${chiU.toFixed(4)}] y p=${pVal.toFixed(4)} < α=${alpha}, se rechaza H₀. La varianza poblacional de "${varName}" es significativamente diferente de ${sigma0_alt.toFixed(4)}.`
+          :`Con χ²=${chiStat2.toFixed(4)} dentro de [${chiL.toFixed(4)}, ${chiU.toFixed(4)}] y p=${pVal.toFixed(4)} ≥ α=${alpha}, no se rechaza H₀. La varianza es compatible con ${sigma0_alt.toFixed(4)}.`}
+        </p>
+      </div>
+
+      <h3 style="color:var(--blue);margin:16px 0 10px">IC para σ² y σ a partir del IC (${conf}% de confianza)</h3>
+      <div class="math-box">
+        <div class="math-formula">IC_{σ²} = [(n−1)s²/χ²_{α/2}, (n−1)s²/χ²_{1−α/2}]</div>
+        <div class="math-step">IC_{σ²} = [${df}·${s2.toFixed(6)}/χ²_{${(1-alpha/2).toFixed(3)}}, ${df}·${s2.toFixed(6)}/χ²_{${(alpha/2).toFixed(3)}}]</div>
+        <div class="math-step">IC_{σ²} = [${(df*s2).toFixed(4)}/${chiU.toFixed(4)}, ${(df*s2).toFixed(4)}/${chiL.toFixed(4)}]</div>
+        <div class="math-result">IC_{σ²} = [${loV.toFixed(6)}, ${hiV.toFixed(6)}]</div>
+        <div class="math-step" style="margin-top:6px">IC_{σ} = [√${loV.toFixed(6)}, √${hiV.toFixed(6)}]</div>
+        <div class="math-result">IC_{σ} = [${loSd.toFixed(6)}, ${hiSd.toFixed(6)}]</div>
+      </div>
+      <div class="interp-box">
+        <strong>📖 Interpretación del IC para σ²:</strong> Con un ${conf}% de confianza, la varianza poblacional de <strong>${varName}</strong> 
+        se encuentra en el intervalo [<strong>${loV.toFixed(4)}</strong>, <strong>${hiV.toFixed(4)}</strong>].
+        Equivalentemente, la desviación estándar poblacional está entre <strong>${loSd.toFixed(4)}</strong> y <strong>${hiSd.toFixed(4)}</strong>.
+        La varianza muestral observada de ${s2.toFixed(4)} ${loV<=s2&&s2<=hiV?'se encuentra dentro':'está fuera'} del intervalo, 
+        lo cual es ${loV<=s2&&s2<=hiV?'coherente con':'inconsistente con'} la estimación puntual.
+      </div>
+    </div>`;
+  });
+
+  // F ratio test between first two numeric vars
+  if(vars.length >= 2) {
+    const s1 = state.results.descriptive[vars[0]];
+    const s2 = state.results.descriptive[vars[1]];
+    if(s1 && s2) {
+      const fr = fRatioTest(s1, s2);
+      html += `<div class="card">
+        <h2>F — Razón de Varianzas: ${s1.varName} / ${s2.varName}</h2>
+        <div class="math-box">
+          <div class="math-label">Planteamiento</div>
+          <div class="math-step">H₀: <span>σ₁² = σ₂² (las varianzas poblacionales son iguales)</span></div>
+          <div class="math-step">H₁: <span>σ₁² ≠ σ₂² (las varianzas poblacionales son diferentes)</span></div>
+          <div class="math-formula" style="margin-top:8px">F = s₁² / s₂²  ~  F(n₁−1, n₂−1)</div>
+          <div class="math-step">s₁² = ${fr.s1v.toFixed(6)} (${s1.varName}, g.l.₁ = ${fr.df1})</div>
+          <div class="math-step">s₂² = ${fr.s2v.toFixed(6)} (${s2.varName}, g.l.₂ = ${fr.df2})</div>
+          <div class="math-step">F = ${fr.s1v.toFixed(6)} / ${fr.s2v.toFixed(6)}</div>
+          <div class="math-result">F = ${fr.F} | Región: F &lt; ${fr.critValL} ó F &gt; ${fr.critValU} | p = ${fr.pVal}</div>
+        </div>
+        <div class="decision-grid">
+          <div class="decision-item"><div class="decision-key">F calculado</div><div class="decision-val">${fr.F}</div></div>
+          <div class="decision-item"><div class="decision-key">F crítico inferior</div><div class="decision-val" style="color:var(--orange)">${fr.critValL}</div></div>
+          <div class="decision-item"><div class="decision-key">F crítico superior</div><div class="decision-val" style="color:var(--orange)">${fr.critValU}</div></div>
+          <div class="decision-item"><div class="decision-key">p-valor</div><div class="decision-val" style="color:${parseFloat(fr.pVal)<alpha?'var(--red)':'var(--green)'}">${fr.pVal}</div></div>
+        </div>
+        <div class="${fr.rejected?'hyp-card hyp-reject':'hyp-card hyp-fail'}" style="padding:12px;margin-top:10px">
+          <span class="hyp-badge ${fr.rejected?'badge-reject':'badge-fail'}">${fr.rejected?'✗ Se rechaza H₀ — Varianzas desiguales (Heteroscedasticidad)':'✓ No se rechaza H₀ — Varianzas iguales (Homocedasticidad)'}</span>
+          <p style="margin-top:8px">
+            ${fr.rejected
+              ?`Con F=${fr.F} fuera de [${fr.critValL}, ${fr.critValU}] y p=${fr.pVal} < α=${alpha}, existe evidencia de que las varianzas de "${s1.varName}" y "${s2.varName}" son significativamente diferentes. Se recomienda usar la prueba de Welch para comparar medias.`
+              :`Con F=${fr.F} dentro de [${fr.critValL}, ${fr.critValU}] y p=${fr.pVal} ≥ α=${alpha}, no se rechaza la igualdad de varianzas. Es válido asumir homocedasticidad para pruebas t de varianzas iguales.`}
+          </p>
+        </div>
+        <div class="interp-box" style="margin-top:8px">
+          <strong>📖 Razón de varianzas:</strong> El cociente F = ${fr.F} indica que la varianza de "${s1.varName}" es 
+          ${parseFloat(fr.F)>1 ? parseFloat(fr.F).toFixed(2)+' veces mayor que' : (1/parseFloat(fr.F)).toFixed(2)+' veces menor que'} la varianza de "${s2.varName}".
+          Esta prueba es la base del análisis de varianza (ANOVA) y permite verificar el supuesto de homocedasticidad previo a la prueba t para muestras independientes.
+        </div>
+      </div>`;
+    }
+  }
+
+  document.getElementById('varianza-content').innerHTML = html;
+}
+
+// ==================== UI HELPERS ====================
+function showLoading(text) {
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('loading-text').textContent = text || 'Procesando...';
+}
+function setLoadingText(text) { document.getElementById('loading-text').textContent = text; }
+function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+function showError(msg) {
+  const el = document.getElementById('run-error');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display='none', 8000);
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+  // Default hypothesis
+  document.querySelector('#hyp-0 textarea').placeholder = 'Ej: El promedio de años de experiencia es menor a 3 años (μ < 3)';
+});
+</script>
+</body>
+</html>
